@@ -1,3 +1,5 @@
+# ===== 项目施工中🚧 =====
+
 # 1. 项目概述
 
 该项目可以自动每日跟踪所配置的 B 站财经 UP 主的最新视频、以及直播内容，并对视频内容进行总结和整理，向用户输出这些财经 UP 主对时长的观点，并让 AI 参考这些观点，最终以日报的形式进行投资建议的分析，从而节约用户观看视频的时间。
@@ -72,6 +74,7 @@
 
 **Uppers: up 主表**
 
+- `id: number`
 - `uid: number` B 站 UP 主的 ID
 - `name: string` 用户名
 - `avatar: string` 头像
@@ -80,7 +83,7 @@
 **Videos: 视频表**
 
 - `id: number`
-- `upper_id: string` 外键
+- `upper_id: number` 外键
 - `cover_url: string`
 - `bvid: string` B 站视频编号
 - `title: string` 视频标题
@@ -97,8 +100,8 @@
 
 **Transcripts: 语音转写表**
 
-- `id: string`
-- `video_id: string` 关联的视频 id
+- `id: number`
+- `video_id: number` 关联的视频 id
 - `content: string` 转写的内容
 - `timestamps: Array<{start: number, end: number, content: string}>` 音频文本与时间戳的对应关系
 - `part_start_at: number` 如果是一个长音频，需要分段，标记当前音频分段的起始点
@@ -109,22 +112,22 @@
 
 **Analysis: 视频分析表**
 
-- `id: string`
-- `video_id: string` 关联的视频 ID
+- `id: number`
+- `video_id: number` 关联的视频 ID
 - `prompt_version: string` 引用的 Prompt 版本
 - `content: string` 分析内容
 - `model: string` 使用的大模型
 
 **DailyReports: 日报表**
 
-- `id: string`
+- `id: number`
 - `report_date: Date`
 - `content: string`
 - `include_video_ids: string[]` 关联的视频 ID
 
 **Models: 模型表**
 
-- `id: string`
+- `id: number`
 - `name: string`
 - `baseURL: string`
 - `apiKey: string`
