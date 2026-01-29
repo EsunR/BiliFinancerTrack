@@ -11,20 +11,19 @@ export interface TimestampSegment {
 
 export interface TranscriptAttributes {
   id: number;
-  video_id: string;
+  videoId: number;
   content: string;
   timestamps: TimestampSegment[];
-  part_start_at: number;
-  audio_duration: number;
+  partStartAt: number;
   model: string;
-  model_output_raw: string;
+  modelOutputRaw: string;
   duration: number;
 }
 
 export interface TranscriptCreationAttribute
   extends Optional<
     TranscriptAttributes,
-    'id' | 'timestamps' | 'model_output_raw' | 'duration'
+    'id' | 'timestamps' | 'modelOutputRaw' | 'duration'
   > {}
 
 export interface TranscriptInstance

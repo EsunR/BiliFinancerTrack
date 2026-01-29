@@ -20,12 +20,12 @@ export interface VideoListItem
     | 'id'
     | 'bvid'
     | 'title'
-    | 'cover_url'
+    | 'coverUrl'
     | 'duration'
-    | 'publish_at'
-    | 'video_type'
+    | 'publishAt'
+    | 'videoType'
     | 'status'
-    | 'status_failed'
+    | 'statusFailed'
   > {
   upper: UpperAttributes;
 }
@@ -39,9 +39,9 @@ export interface TranscriptDetail
 export interface AnalysisDetail
   extends Pick<
     AnalysisAttributes,
-    'id' | 'prompt_version' | 'content' | 'model'
+    'id' | 'promptVersion' | 'content' | 'model'
   > {
-  is_default: boolean;
+  isDefault: boolean;
 }
 
 // ==================== GET /videos/list ====================
@@ -63,17 +63,17 @@ export interface GetVideosDetailRes
   extends Pick<
     VideoAttributes,
     | 'id'
-    | 'upper_id'
+    | 'upperId'
     | 'bvid'
     | 'title'
-    | 'cover_url'
+    | 'coverUrl'
     | 'duration'
-    | 'publish_at'
-    | 'video_type'
+    | 'publishAt'
+    | 'videoType'
     | 'status'
-    | 'status_failed'
+    | 'statusFailed'
   > {
-  upper_name: string;
+  upperName: string;
   transcript: TranscriptDetail | null;
   analysis: AnalysisDetail | null;
 }
@@ -86,11 +86,11 @@ export interface PostVideosAnalyzeReq {
 }
 
 export interface PostVideosAnalyzeRes {
-  video_id: number;
-  task_id: string;
+  videoId: number;
+  taskId: string;
   status: 'queued' | 'in_progress' | 'completed' | 'failed';
   message: string;
-  queue_position?: number;
+  queuePosition?: number;
 }
 
 // ==================== GET /videos/analysis-versions ====================
@@ -100,13 +100,13 @@ export interface GetVideosAnalysisVersionsReq {
 }
 
 export interface AnalysisVersionItem
-  extends Pick<AnalysisAttributes, 'id' | 'prompt_version' | 'model'> {
-  is_default: boolean;
-  content_preview: string;
+  extends Pick<AnalysisAttributes, 'id' | 'promptVersion' | 'model'> {
+  isDefault: boolean;
+  contentPreview: string;
 }
 
 export interface GetVideosAnalysisVersionsRes {
-  video_id: number;
+  videoId: number;
   versions: AnalysisVersionItem[];
 }
 
@@ -120,9 +120,9 @@ export interface GetVideosAnalysisReq {
 export interface GetVideosAnalysisRes
   extends Pick<
     AnalysisAttributes,
-    'id' | 'video_id' | 'prompt_version' | 'model' | 'content'
+    'id' | 'videoId' | 'promptVersion' | 'model' | 'content'
   > {
-  is_default: boolean;
+  isDefault: boolean;
 }
 
 // ==================== VideoApi ====================

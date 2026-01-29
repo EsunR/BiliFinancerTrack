@@ -1,4 +1,5 @@
 import {
+  DELETE_UPPERS_DELETE_API,
   GET_UPPERS_DETAIL_API,
   GET_UPPERS_LIST_API,
   POST_UPPERS_CREATE_API,
@@ -12,13 +13,13 @@ export interface PostUppersReq {
 
 export type PostUppersRes = Pick<
   UpperAttributes,
-  'id' | 'uid' | 'name' | 'avatar' | 'created_at'
+  'id' | 'uid' | 'name' | 'avatar' | 'createdAt'
 >;
 
 export type GetUppersReq = Record<string, never>;
 
 export type GetUppersRes = Array<
-  Pick<UpperAttributes, 'id' | 'uid' | 'name' | 'avatar' | 'created_at'>
+  Pick<UpperAttributes, 'id' | 'uid' | 'name' | 'avatar' | 'createdAt'>
 >;
 
 export interface GetUppersDetailReq {
@@ -28,10 +29,9 @@ export interface GetUppersDetailReq {
 export interface GetUppersDetailRes
   extends Pick<
     UpperAttributes,
-    'id' | 'uid' | 'name' | 'avatar' | 'created_at'
+    'id' | 'uid' | 'name' | 'avatar' | 'createdAt'
   > {
-  video_count: number;
-  summary_count: number;
+  videoCount: number;
 }
 
 export interface PostUppersSyncReq {
@@ -39,11 +39,19 @@ export interface PostUppersSyncReq {
 }
 
 export interface PostUppersSyncRes {
-  upper_id: number;
-  sync_count: number;
-  total_count: number;
-  latest_video_id: number | null;
-  sync_at: Date;
+  upperId: number;
+  syncCount: number;
+  totalCount: number;
+  latestVideoId: number | null;
+  syncAt: Date;
+}
+
+export interface DeleteUppersDeleteReq {
+  id: number;
+}
+
+export interface DeleteUppersDeleteRes {
+  id: number;
 }
 
 export interface UpperApi {
@@ -62,5 +70,9 @@ export interface UpperApi {
   [POST_UPPERS_SYNC_API]: {
     req: PostUppersSyncReq;
     res: PostUppersSyncRes;
+  };
+  [DELETE_UPPERS_DELETE_API]: {
+    req: DeleteUppersDeleteReq;
+    res: DeleteUppersDeleteRes;
   };
 }

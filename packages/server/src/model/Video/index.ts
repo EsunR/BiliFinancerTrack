@@ -13,11 +13,11 @@ export function createVideoModel(sequelize: Sequelize) {
       autoIncrement: true,
       primaryKey: true,
     },
-    upper_id: {
+    upperId: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    cover_url: {
+    coverUrl: {
       type: DataTypes.STRING,
     },
     bvid: {
@@ -32,24 +32,23 @@ export function createVideoModel(sequelize: Sequelize) {
     duration: {
       type: DataTypes.INTEGER,
     },
-    publish_at: {
+    publishAt: {
       type: DataTypes.DATE,
     },
-    video_type: {
+    videoType: {
       type: DataTypes.ENUM('video', 'live'),
       defaultValue: 'video',
     },
     status: {
       type: DataTypes.ENUM(
-        VideoStatusEnum.DOWNLOADING,
         VideoStatusEnum.PENDING,
-        VideoStatusEnum.TRANSCRIBING,
-        VideoStatusEnum.ANALYZING,
-        VideoStatusEnum.COMPLETED
+        VideoStatusEnum.DOWNLOADED,
+        VideoStatusEnum.TRANSCRIBED,
+        VideoStatusEnum.ANALYZED
       ),
-      defaultValue: VideoStatusEnum.DOWNLOADING,
+      defaultValue: VideoStatusEnum.PENDING,
     },
-    status_failed: {
+    statusFailed: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },

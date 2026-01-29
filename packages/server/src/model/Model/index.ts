@@ -27,7 +27,7 @@ export function createModelModel(sequelize: Sequelize) {
       type: DataTypes.ENUM('text', 'audio_to_text'),
       allowNull: false,
     },
-    is_default: {
+    isDefault: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },

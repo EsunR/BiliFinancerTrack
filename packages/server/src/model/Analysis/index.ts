@@ -9,11 +9,11 @@ export function createAnalysisModel(sequelize: Sequelize) {
       autoIncrement: true,
       primaryKey: true,
     },
-    video_id: {
+    videoId: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    prompt_version: {
+    promptVersion: {
       type: DataTypes.STRING,
       allowNull: false,
     },

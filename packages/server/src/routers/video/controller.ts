@@ -1,4 +1,7 @@
-import { VideoStatusEnum } from '@express-vue-template/types/model';
+import {
+  TimestampSegment,
+  VideoStatusEnum,
+} from '@express-vue-template/types/model';
 import upperModel from '@server/model/Upper';
 import videoModel from '@server/model/Video';
 import { Op } from 'sequelize';
@@ -9,6 +12,14 @@ import type {
   GetVideosListRes,
   PostVideosAnalyzeRes,
 } from '@express-vue-template/types/api/video/types';
+import { downloadVideo, getBiliClient } from '@server/utils/bili';
+import path from 'path';
+import { PUBLIC_DIR_PATH } from '@server/config/paths';
+import fs from 'fs';
+import { convertVideoToAudio } from '@server/utils/ffmpeg';
+import { logger } from '@server/utils/log';
+import { groqWhisper } from '@server/utils/transcriber';
+import transcriptModel from '@server/model/Transcript';
 
 /**
  * 获取UP主视频列表
@@ -24,7 +35,7 @@ export async function getVideosList(
     if (!Number.isFinite(upperId)) {
       throw new Error('upperId 必须为数字');
     }
-    whereConditions.upper_id = upperId;
+    whereConditions.upperId = upperId;
   }
 
   if (date) {
@@ -32,7 +43,7 @@ export async function getVideosList(
     const endDate = new Date(date);
     endDate.setDate(endDate.getDate() + 1);
 
-    whereConditions.publish_at = {
+    whereConditions.publishAt = {
       [Op.gte]: startDate,
       [Op.lt]: endDate,
     };
@@ -41,22 +52,22 @@ export async function getVideosList(
   // 获取视频列表
   const videos = await videoModel.findAll({
     where: whereConditions,
-    order: [['publish_at', 'DESC']],
+    order: [['publishAt', 'DESC']],
   });
 
   return await Promise.all(
     videos.map(async (video) => {
-      const upper = await upperModel.findByPk(video.upper_id);
+      const upper = await upperModel.findByPk(video.upperId);
       return {
         id: video.id,
         bvid: video.bvid,
         title: video.title,
-        cover_url: video.cover_url,
+        coverUrl: video.coverUrl,
         duration: video.duration,
-        publish_at: video.publish_at,
-        video_type: video.video_type,
+        publishAt: video.publishAt,
+        videoType: video.videoType,
         status: video.status,
-        status_failed: video.status_failed,
+        statusFailed: video.statusFailed,
         upper,
       };
     })
@@ -77,7 +88,7 @@ export async function getVideosDetail(id: number): Promise<GetVideosDetailRes> {
   }
 
   // 获取 UP 主信息
-  const upper = await upperModel.findByPk(video.upper_id);
+  const upper = await upperModel.findByPk(video.upperId);
   if (!upper) {
     throw new Error('404-UP 主不存在');
   }
@@ -90,16 +101,16 @@ export async function getVideosDetail(id: number): Promise<GetVideosDetailRes> {
 
   return {
     id: video.id,
-    upper_id: video.upper_id,
-    upper_name: upper.name,
+    upperId: video.upperId,
+    upperName: upper.name,
     bvid: video.bvid.split(',')[0],
     title: video.title,
-    cover_url: video.cover_url,
+    coverUrl: video.coverUrl,
     duration: video.duration,
-    publish_at: video.publish_at,
-    video_type: video.video_type,
+    publishAt: video.publishAt,
+    videoType: video.videoType,
     status: video.status,
-    status_failed: video.status_failed,
+    statusFailed: video.statusFailed,
     transcript,
     analysis,
   };
@@ -121,21 +132,70 @@ export async function postVideosAnalyze(
     throw new Error('404-视频不存在');
   }
 
-  // 检查转写是否完成
-  if (video.status !== VideoStatusEnum.COMPLETED) {
-    throw new Error('视频转写未完成，无法进行分析');
+  async function processVideo() {
+    const bvid = video.bvid.split(',')[0];
+    const videoPath = path.join(
+      PUBLIC_DIR_PATH,
+      'downloads/videos',
+      `${bvid}.mp4`
+    );
+    const audioPath = path.join(
+      PUBLIC_DIR_PATH,
+      'downloads/videos',
+      `${bvid}.mp3`
+    );
+    await video.update({ status: VideoStatusEnum.PENDING });
+    if (
+      video.status === VideoStatusEnum.PENDING ||
+      fs.existsSync(videoPath) === false
+    ) {
+      logger.info(`开始下载视频 ${bvid} ...`);
+      await downloadVideo(bvid);
+      logger.info(`视频 ${bvid} 下载完成`);
+      await video.update({ status: VideoStatusEnum.DOWNLOADED });
+    }
+    if (
+      video.status === VideoStatusEnum.DOWNLOADED ||
+      fs.existsSync(audioPath) === false
+    ) {
+      logger.info(`开始分离音频 ${bvid} ...`);
+      await convertVideoToAudio(videoPath);
+      logger.info(`视频 ${bvid} 音频分离完成`);
+      await video.update({ status: VideoStatusEnum.AUDIO_EXTRACTED });
+    }
+    if (video.status === VideoStatusEnum.AUDIO_EXTRACTED) {
+      logger.info(`开始语音转写 ${bvid} ...`);
+      const audioTextInfo = await groqWhisper.audio2Text(audioPath);
+      logger.info(`语音转写完成 ${bvid} ...`);
+      // 创建音频分离表
+      await transcriptModel.create({
+        videoId: id,
+        content: audioTextInfo.text,
+        duration: audioTextInfo.duration,
+        model: 'whisper-large-v3-turbo',
+        modelOutputRaw: audioTextInfo.raw,
+        partStartAt: 0,
+        timestamps: audioTextInfo.segments.map(
+          (seg) =>
+            ({
+              start: seg.start,
+              end: seg.end,
+              content: seg.text,
+            } as TimestampSegment)
+        ),
+      });
+      await video.update({ status: VideoStatusEnum.TRANSCRIBED });
+    }
   }
 
-  // TODO: 检查是否已存在相同 promptVersion 的分析任务
-  // TODO: 将任务加入队列
-  const taskId = `task_${id}_${Date.now()}`;
+  processVideo();
 
   return {
-    video_id: id,
-    task_id: taskId,
+    videoId: id,
+    taskId: '111',
     status: 'queued',
     message: '分析任务已加入队列，请通过查询接口获取进度',
-    queue_position: 0, // TODO: 获取队列中的实际位置
+    queuePosition: 0, // TODO: 获取队列中的实际位置
   };
 }
 
@@ -158,7 +218,7 @@ export async function getVideosAnalysisVersions(
   const versions: GetVideosAnalysisVersionsRes['versions'] = [];
 
   return {
-    video_id: id,
+    videoId: id,
     versions,
   };
 }

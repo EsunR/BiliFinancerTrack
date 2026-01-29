@@ -21,7 +21,7 @@ export function createUpperModel(sequelize: Sequelize) {
     avatar: {
       type: DataTypes.STRING,
     },
-    created_at: {
+    createdAt: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
     },

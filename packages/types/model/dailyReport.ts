@@ -5,9 +5,9 @@ import type {
 
 export interface DailyReportAttributes {
   id: number;
-  report_date: Date;
+  reportDate: Date;
   content: string;
-  include_video_ids: string[];
+  includeVideoIds: string[];
 }
 
 export interface DailyReportCreationAttribute

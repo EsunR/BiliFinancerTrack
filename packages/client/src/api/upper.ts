@@ -1,5 +1,6 @@
 import request from '@client/utils/request';
 import {
+  DELETE_UPPERS_DELETE_API,
   GET_UPPERS_DETAIL_API,
   GET_UPPERS_LIST_API,
   POST_UPPERS_CREATE_API,
@@ -39,4 +40,12 @@ export async function postUppersSync(
   return (await request.post(POST_UPPERS_SYNC_API, null, {
     params,
   })) as AxiosResponse<PickServerRes<typeof POST_UPPERS_SYNC_API>>;
+}
+
+export async function deleteUppersDelete(
+  params: PickServerReq<typeof DELETE_UPPERS_DELETE_API>
+) {
+  return (await request.delete(DELETE_UPPERS_DELETE_API, {
+    params,
+  })) as AxiosResponse<PickServerRes<typeof DELETE_UPPERS_DELETE_API>>;
 }

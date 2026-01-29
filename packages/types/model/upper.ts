@@ -8,7 +8,7 @@ export interface UpperAttributes {
   uid: number;
   name: string;
   avatar: string;
-  created_at: Date;
+  createdAt: Date;
 }
 
 export interface UpperCreationAttribute

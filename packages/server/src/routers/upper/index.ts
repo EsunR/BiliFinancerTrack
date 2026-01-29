@@ -1,4 +1,5 @@
 import {
+  DELETE_UPPERS_DELETE_API,
   GET_UPPERS_DETAIL_API,
   GET_UPPERS_LIST_API,
   POST_UPPERS_CREATE_API,
@@ -8,6 +9,9 @@ import {
 } from '@express-vue-template/types/api';
 import { VideoStatusEnum } from '@express-vue-template/types/model';
 import { autoRetry } from '@express-vue-template/utils';
+import db from '@server/db';
+import analysisModel from '@server/model/Analysis';
+import transcriptModel from '@server/model/Transcript';
 import upperModel from '@server/model/Upper';
 import videoModel from '@server/model/Video';
 import ResBody from '@server/struct/ResBody';
@@ -53,7 +57,7 @@ upperRouter.post(POST_UPPERS_CREATE_API, async (req, res) => {
           uid: record.uid,
           name: record.name,
           avatar: record.avatar,
-          created_at: record.created_at,
+          createdAt: record.createdAt,
         } as PickServerRes<typeof POST_UPPERS_CREATE_API>,
       })
     );
@@ -67,7 +71,7 @@ upperRouter.post(POST_UPPERS_CREATE_API, async (req, res) => {
  */
 upperRouter.get(GET_UPPERS_LIST_API, async (req, res) => {
   const records = await upperModel.findAll({
-    order: [['created_at', 'DESC']],
+    order: [['createdAt', 'DESC']],
   });
 
   res.json(
@@ -77,7 +81,7 @@ upperRouter.get(GET_UPPERS_LIST_API, async (req, res) => {
         uid: record.uid,
         name: record.name,
         avatar: record.avatar,
-        created_at: record.created_at,
+        createdAt: record.createdAt,
       })) as PickServerRes<typeof GET_UPPERS_LIST_API>,
     })
   );
@@ -100,16 +104,7 @@ upperRouter.get(GET_UPPERS_DETAIL_API, async (req, res) => {
     throw new Error('UP 主不存在');
   }
 
-  const [videoCount, summaryCount] = await Promise.all([
-    videoModel.count({ where: { upper_id: upperId } }),
-    videoModel.count({
-      where: {
-        upper_id: upperId,
-        status: VideoStatusEnum.COMPLETED,
-        status_failed: false,
-      },
-    }),
-  ]);
+  const videoCount = await videoModel.count({ where: { upperId } });
 
   res.json(
     new ResBody({
@@ -118,9 +113,8 @@ upperRouter.get(GET_UPPERS_DETAIL_API, async (req, res) => {
         uid: record.uid,
         name: record.name,
         avatar: record.avatar,
-        created_at: record.created_at,
-        video_count: videoCount,
-        summary_count: summaryCount,
+        createdAt: record.createdAt,
+        videoCount,
       } as PickServerRes<typeof GET_UPPERS_DETAIL_API>,
     })
   );
@@ -157,13 +151,13 @@ upperRouter.post(POST_UPPERS_SYNC_API, async (req, res) => {
   // 过滤出 upper 记录创建之后的视频
   const videosAfterCreation = videoList.filter((video) => {
     // const videoCreatedAt = new Date(video.created * 1000);
-    // return videoCreatedAt >= record.created_at;
+    // return videoCreatedAt >= record.createdAt;
     return true;
   });
 
   // 获取数据库中已存在的 bvid 列表
   const existingVideos = await videoModel.findAll({
-    where: { upper_id: upperId },
+    where: { upperId },
     attributes: ['bvid'],
   });
   const existingBvids = new Set(
@@ -180,13 +174,13 @@ upperRouter.post(POST_UPPERS_SYNC_API, async (req, res) => {
   // 批量创建新视频记录
   if (newVideos.length > 0) {
     const videosToCreate = newVideos.map((video) => ({
-      upper_id: upperId,
-      cover_url: video.pic,
+      upperId,
+      coverUrl: video.pic,
       bvid: `${video.bvid},${video.aid},${video.mid}`,
       title: video.title,
       duration: parseDuration(video.length),
-      publish_at: new Date(video.created * 1000),
-      video_type: 'video' as const,
+      publishAt: new Date(video.created * 1000),
+      videoType: 'video' as const,
       status: VideoStatusEnum.PENDING,
     }));
 
@@ -199,14 +193,82 @@ upperRouter.post(POST_UPPERS_SYNC_API, async (req, res) => {
   res.json(
     new ResBody({
       data: {
-        upper_id: upperId,
-        sync_count: newVideos.length,
-        total_count: videoList.length,
-        latest_video_id: latestVideoId,
-        sync_at: new Date(),
+        upperId,
+        syncCount: newVideos.length,
+        totalCount: videoList.length,
+        latestVideoId,
+        syncAt: new Date(),
       } as PickServerRes<typeof POST_UPPERS_SYNC_API>,
     })
   );
+});
+
+/**
+ * 删除 UP 主
+ */
+upperRouter.delete(DELETE_UPPERS_DELETE_API, async (req, res) => {
+  const { id } = req.query as unknown as PickServerReq<
+    typeof DELETE_UPPERS_DELETE_API
+  >;
+  if (!Number.isFinite(Number(id))) {
+    throw new Error('id 必须为数字');
+  }
+
+  const upperId = Number(id);
+  const record = await upperModel.findByPk(upperId);
+  if (!record) {
+    throw new Error('UP 主不存在');
+  }
+
+  const transaction = await db.sequelize.transaction();
+  try {
+    const videoRecords = await videoModel.findAll({
+      where: { upperId },
+      attributes: ['id'],
+      transaction,
+    });
+    const videoIds = videoRecords.map((video) => String(video.id));
+
+    const deletedAnalysisCount = videoIds.length
+      ? await analysisModel.destroy({
+          where: { videoId: videoIds },
+          transaction,
+        })
+      : 0;
+
+    const deletedTranscriptCount = videoIds.length
+      ? await transcriptModel.destroy({
+          where: { videoId: videoIds },
+          transaction,
+        })
+      : 0;
+
+    const deletedVideoCount = await videoModel.destroy({
+      where: { upperId },
+      transaction,
+    });
+
+    await upperModel.destroy({
+      where: { id: upperId },
+      transaction,
+    });
+
+    await transaction.commit();
+
+    res.json(
+      new ResBody({
+        data: {
+          id: upperId,
+          deletedVideoCount,
+          deletedAnalysisCount,
+          deletedTranscriptCount,
+        } as PickServerRes<typeof DELETE_UPPERS_DELETE_API>,
+      })
+    );
+  } catch (error) {
+    await transaction.rollback();
+    throw error;
+  }
 });
 
 export default upperRouter;

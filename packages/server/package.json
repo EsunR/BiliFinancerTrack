@@ -19,12 +19,17 @@
     "cors": "^2.8.5",
     "cross-env": "^7.0.3",
     "dayjs": "^1.11.7",
+    "dotenv": "^17.2.3",
     "express": "5.2.1",
     "glob": "^9.3.2",
+    "groq-sdk": "^0.37.0",
+    "http-proxy-agent": "^7.0.2",
     "lodash-es": "^4.17.21",
     "log4js": "^6.9.1",
+    "openai": "^6.17.0",
     "sequelize": "^6.19.0",
-    "sqlite3": "^5.1.1"
+    "sqlite3": "^5.1.1",
+    "undici": "^7.19.2"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",

@@ -9,8 +9,8 @@ export function createTranscriptModel(sequelize: Sequelize) {
       autoIncrement: true,
       primaryKey: true,
     },
-    video_id: {
-      type: DataTypes.STRING,
+    videoId: {
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     content: {
@@ -20,17 +20,14 @@ export function createTranscriptModel(sequelize: Sequelize) {
       type: DataTypes.JSON,
       defaultValue: [],
     },
-    part_start_at: {
+    partStartAt: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
-    },
-    audio_duration: {
-      type: DataTypes.INTEGER,
     },
     model: {
       type: DataTypes.STRING,
     },
-    model_output_raw: {
+    modelOutputRaw: {
       type: DataTypes.TEXT,
     },
     duration: {

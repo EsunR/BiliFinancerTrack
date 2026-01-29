@@ -12,11 +12,11 @@ export interface ModelAttributes {
   apiKey: string;
   model: string;
   type: ModelType;
-  is_default: boolean;
+  isDefault: boolean;
 }
 
 export interface ModelCreationAttribute
-  extends Optional<ModelAttributes, 'id' | 'is_default'> {}
+  extends Optional<ModelAttributes, 'id' | 'isDefault'> {}
 
 export interface ModelInstance
   extends Model<ModelAttributes, ModelCreationAttribute>,

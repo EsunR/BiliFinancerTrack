@@ -11,14 +11,14 @@ export function createDailyReportModel(sequelize: Sequelize) {
         autoIncrement: true,
         primaryKey: true,
       },
-      report_date: {
+      reportDate: {
         type: DataTypes.DATE,
         allowNull: false,
       },
       content: {
         type: DataTypes.TEXT,
       },
-      include_video_ids: {
+      includeVideoIds: {
         type: DataTypes.JSON,
         defaultValue: [],
       },
