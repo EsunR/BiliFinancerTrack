@@ -4,10 +4,17 @@ import type {
 } from '@express-vue-template/server/node_modules/sequelize';
 
 export enum VideoStatusEnum {
-  DOWNLOADING = 'downloading',
+  /** 待处理 */
   PENDING = 'pending',
+  /** 下载中 */
+  DOWNLOADING = 'downloading',
+  /** 下载完成 */
+  DOWNLOADED = 'downloaded',
+  /** 转写中 */
   TRANSCRIBING = 'transcribing',
+  /** AI 分析中 */
   ANALYZING = 'analyzing',
+  /** 分析完成 */
   COMPLETED = 'completed',
 }
 

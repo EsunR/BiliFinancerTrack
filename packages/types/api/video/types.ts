@@ -1,0 +1,151 @@
+import {
+  GET_VIDEOS_ANALYSIS_API,
+  GET_VIDEOS_ANALYSIS_VERSIONS_API,
+  GET_VIDEOS_DETAIL_API,
+  GET_VIDEOS_LIST_API,
+  POST_VIDEOS_ANALYZE_API,
+} from '.';
+import {
+  AnalysisAttributes,
+  TranscriptAttributes,
+  UpperAttributes,
+  VideoAttributes,
+} from '../../model';
+
+// ==================== 基础类型 ====================
+
+export interface VideoListItem
+  extends Pick<
+    VideoAttributes,
+    | 'id'
+    | 'bvid'
+    | 'title'
+    | 'cover_url'
+    | 'duration'
+    | 'publish_at'
+    | 'video_type'
+    | 'status'
+    | 'status_failed'
+  > {
+  upper: UpperAttributes;
+}
+
+export interface TranscriptDetail
+  extends Pick<
+    TranscriptAttributes,
+    'id' | 'content' | 'timestamps' | 'model'
+  > {}
+
+export interface AnalysisDetail
+  extends Pick<
+    AnalysisAttributes,
+    'id' | 'prompt_version' | 'content' | 'model'
+  > {
+  is_default: boolean;
+}
+
+// ==================== GET /videos/list ====================
+
+export interface GetVideosListReq {
+  upperId?: number;
+  date?: string; // YYYY-MM-DD 格式，可选
+}
+
+export type GetVideosListRes = VideoListItem[];
+
+// ==================== GET /videos/detail ====================
+
+export interface GetVideosDetailReq {
+  id: number;
+}
+
+export interface GetVideosDetailRes
+  extends Pick<
+    VideoAttributes,
+    | 'id'
+    | 'upper_id'
+    | 'bvid'
+    | 'title'
+    | 'cover_url'
+    | 'duration'
+    | 'publish_at'
+    | 'video_type'
+    | 'status'
+    | 'status_failed'
+  > {
+  upper_name: string;
+  transcript: TranscriptDetail | null;
+  analysis: AnalysisDetail | null;
+}
+
+// ==================== POST /videos/analyze ====================
+
+export interface PostVideosAnalyzeReq {
+  id: number;
+  promptVersion?: string; // 可选，默认使用 default 版本
+}
+
+export interface PostVideosAnalyzeRes {
+  video_id: number;
+  task_id: string;
+  status: 'queued' | 'in_progress' | 'completed' | 'failed';
+  message: string;
+  queue_position?: number;
+}
+
+// ==================== GET /videos/analysis-versions ====================
+
+export interface GetVideosAnalysisVersionsReq {
+  id: number;
+}
+
+export interface AnalysisVersionItem
+  extends Pick<AnalysisAttributes, 'id' | 'prompt_version' | 'model'> {
+  is_default: boolean;
+  content_preview: string;
+}
+
+export interface GetVideosAnalysisVersionsRes {
+  video_id: number;
+  versions: AnalysisVersionItem[];
+}
+
+// ==================== GET /videos/analysis ====================
+
+export interface GetVideosAnalysisReq {
+  id: number;
+  analysisId: number;
+}
+
+export interface GetVideosAnalysisRes
+  extends Pick<
+    AnalysisAttributes,
+    'id' | 'video_id' | 'prompt_version' | 'model' | 'content'
+  > {
+  is_default: boolean;
+}
+
+// ==================== VideoApi ====================
+
+export interface VideoApi {
+  [GET_VIDEOS_LIST_API]: {
+    req: GetVideosListReq;
+    res: GetVideosListRes;
+  };
+  [GET_VIDEOS_DETAIL_API]: {
+    req: GetVideosDetailReq;
+    res: GetVideosDetailRes;
+  };
+  [POST_VIDEOS_ANALYZE_API]: {
+    req: PostVideosAnalyzeReq;
+    res: PostVideosAnalyzeRes;
+  };
+  [GET_VIDEOS_ANALYSIS_VERSIONS_API]: {
+    req: GetVideosAnalysisVersionsReq;
+    res: GetVideosAnalysisVersionsRes;
+  };
+  [GET_VIDEOS_ANALYSIS_API]: {
+    req: GetVideosAnalysisReq;
+    res: GetVideosAnalysisRes;
+  };
+}
