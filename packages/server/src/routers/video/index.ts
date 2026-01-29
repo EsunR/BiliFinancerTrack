@@ -9,7 +9,9 @@ import {
 } from '@express-vue-template/types/api';
 import ResBody from '@server/struct/ResBody';
 import { Router } from 'express';
+import { verifyRequestArgs } from '@server/utils';
 import * as videoController from './controller';
+import { randomUUID } from 'crypto';
 
 const videoRouter = Router();
 
@@ -61,18 +63,34 @@ videoRouter.get(GET_VIDEOS_DETAIL_API, async (req, res) => {
 /**
  * 触发视频分析
  */
-videoRouter.post(POST_VIDEOS_ANALYZE_API, async (req, res) => {
-  const { id, promptVersion } = req.body as unknown as PickServerReq<
+videoRouter.post(POST_VIDEOS_ANALYZE_API, async (req, res, next) => {
+  // 校验参数
+  const vResult = verifyRequestArgs(req.body, [
+    {
+      key: 'id',
+      required: true,
+      type: 'number',
+    },
+  ]);
+  if (!vResult.result) {
+    throw new Error(vResult.errMsg);
+  }
+
+  let { id, promptVersion } = req.body as unknown as PickServerReq<
     typeof POST_VIDEOS_ANALYZE_API
   >;
 
+  if (!promptVersion) {
+    promptVersion = randomUUID().slice(0, 8);
+  }
+
   const idValue = typeof id === 'string' ? Number(id) : id;
 
-  const data = await videoController.postVideosAnalyze(idValue, promptVersion);
+  await videoController.postVideosAnalyze(idValue, promptVersion);
 
   res.json(
     new ResBody({
-      data,
+      data: {} as PickServerRes<typeof POST_VIDEOS_ANALYZE_API>,
     })
   );
 });

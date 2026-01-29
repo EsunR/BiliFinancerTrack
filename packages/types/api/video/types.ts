@@ -85,13 +85,7 @@ export interface PostVideosAnalyzeReq {
   promptVersion?: string; // 可选，默认使用 default 版本
 }
 
-export interface PostVideosAnalyzeRes {
-  videoId: number;
-  taskId: string;
-  status: 'queued' | 'in_progress' | 'completed' | 'failed';
-  message: string;
-  queuePosition?: number;
-}
+export interface PostVideosAnalyzeRes {}
 
 // ==================== GET /videos/analysis-versions ====================
 

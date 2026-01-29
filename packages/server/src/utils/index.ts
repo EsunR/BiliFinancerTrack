@@ -10,7 +10,7 @@ export function verifyRequestArgs(
   args: Record<string, any>,
   verifyKeys: (
     | string
-    | { key: string; type: 'string' | 'array'; required?: boolean }
+    | { key: string; type: 'string' | 'array' | 'number'; required?: boolean }
   )[]
 ): VerifyResult {
   let result: VerifyResult = {
@@ -56,6 +56,14 @@ export function verifyRequestArgs(
           result = {
             result: false,
             errMsg: `${verifyItem.key} 不能为空数组`,
+          };
+          return true;
+        }
+      } else if (type === 'number') {
+        if (typeof args[key] !== 'number') {
+          result = {
+            result: false,
+            errMsg: `${verifyItem.key} 必须为数字类型的值`,
           };
           return true;
         }

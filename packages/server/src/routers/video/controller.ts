@@ -1,25 +1,27 @@
-import {
-  TimestampSegment,
-  VideoStatusEnum,
-} from '@express-vue-template/types/model';
-import upperModel from '@server/model/Upper';
-import videoModel from '@server/model/Video';
-import { Op } from 'sequelize';
 import type {
   GetVideosAnalysisRes,
   GetVideosAnalysisVersionsRes,
   GetVideosDetailRes,
   GetVideosListRes,
-  PostVideosAnalyzeRes,
 } from '@express-vue-template/types/api/video/types';
-import { downloadVideo, getBiliClient } from '@server/utils/bili';
-import path from 'path';
+import {
+  TimestampSegment,
+  VideoStatusEnum,
+} from '@express-vue-template/types/model';
 import { PUBLIC_DIR_PATH } from '@server/config/paths';
-import fs from 'fs';
+import analysisModel from '@server/model/Analysis';
+import transcriptModel from '@server/model/Transcript';
+import upperModel from '@server/model/Upper';
+import videoModel from '@server/model/Video';
+import { downloadVideo } from '@server/utils/bili';
 import { convertVideoToAudio } from '@server/utils/ffmpeg';
+import { deepSeekV3Chat } from '@server/utils/llm';
 import { logger } from '@server/utils/log';
 import { groqWhisper } from '@server/utils/transcriber';
-import transcriptModel from '@server/model/Transcript';
+import fs from 'fs';
+import path from 'path';
+import { Op } from 'sequelize';
+import { BASE_PROMPT } from './constances';
 
 /**
  * 获取UP主视频列表
@@ -122,7 +124,7 @@ export async function getVideosDetail(id: number): Promise<GetVideosDetailRes> {
 export async function postVideosAnalyze(
   id: number,
   promptVersion: string = 'default'
-): Promise<PostVideosAnalyzeRes> {
+) {
   if (!Number.isFinite(id)) {
     throw new Error('id 必须为数字');
   }
@@ -144,7 +146,6 @@ export async function postVideosAnalyze(
       'downloads/videos',
       `${bvid}.mp3`
     );
-    await video.update({ status: VideoStatusEnum.PENDING });
     if (
       video.status === VideoStatusEnum.PENDING ||
       fs.existsSync(videoPath) === false
@@ -186,17 +187,41 @@ export async function postVideosAnalyze(
       });
       await video.update({ status: VideoStatusEnum.TRANSCRIBED });
     }
+    if (video.status === VideoStatusEnum.TRANSCRIBED) {
+      const transcripts = await transcriptModel.findAll({
+        where: { videoId: id },
+      });
+      if (transcripts.length === 0) {
+        return;
+      }
+      logger.info(`开始视频分析 ${bvid} ...`);
+      const chatResponse = await deepSeekV3Chat.chat([
+        {
+          role: 'system',
+          content: BASE_PROMPT,
+        },
+        {
+          role: 'user',
+          content: `视频内容如下：${transcripts
+            .map((t) => t.content)
+            .join('\n')}`,
+        },
+      ]);
+      if (chatResponse) {
+        analysisModel.create({
+          content: chatResponse.content,
+          videoId: id,
+          promptVersion,
+        });
+        logger.info(`视频分析完成 ${bvid} ...`);
+      }
+    }
   }
 
-  processVideo();
-
-  return {
-    videoId: id,
-    taskId: '111',
-    status: 'queued',
-    message: '分析任务已加入队列，请通过查询接口获取进度',
-    queuePosition: 0, // TODO: 获取队列中的实际位置
-  };
+  processVideo().catch((err) => {
+    logger.error(`视频处理失败 ${video.bvid}：${err.message}`);
+    video.update({ statusFailed: true });
+  });
 }
 
 /**

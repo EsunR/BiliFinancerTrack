@@ -10,7 +10,7 @@ export function createAnalysisModel(sequelize: Sequelize) {
       primaryKey: true,
     },
     videoId: {
-      type: DataTypes.STRING,
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     promptVersion: {

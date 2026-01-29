@@ -5,7 +5,7 @@ import type {
 
 export interface AnalysisAttributes {
   id: number;
-  videoId: string;
+  videoId: number;
   promptVersion: string;
   content: string;
   model: string;

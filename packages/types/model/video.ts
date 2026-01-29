@@ -12,8 +12,6 @@ export enum VideoStatusEnum {
   AUDIO_EXTRACTED = 'audio_extracted',
   /** 转写完成 */
   TRANSCRIBED = 'transcribed',
-  /** AI 分析完成 */
-  ANALYZED = 'analyzed',
 }
 
 export type VideoType = 'video' | 'live';

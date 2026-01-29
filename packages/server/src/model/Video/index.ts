@@ -43,8 +43,8 @@ export function createVideoModel(sequelize: Sequelize) {
       type: DataTypes.ENUM(
         VideoStatusEnum.PENDING,
         VideoStatusEnum.DOWNLOADED,
-        VideoStatusEnum.TRANSCRIBED,
-        VideoStatusEnum.ANALYZED
+        VideoStatusEnum.AUDIO_EXTRACTED,
+        VideoStatusEnum.TRANSCRIBED
       ),
       defaultValue: VideoStatusEnum.PENDING,
     },
