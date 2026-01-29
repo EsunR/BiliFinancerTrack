@@ -1,7 +1,8 @@
-import { ITestApi } from './test';
-import { IUserApi } from './user/types';
+import { TestApi } from './test';
+import { UpperApi } from './upper';
+import { UserApi } from './user/types';
 
-export type ServerAPI = ITestApi & IUserApi;
+export type ServerAPI = TestApi & UserApi & UpperApi;
 
 export type PickServerReq<P extends keyof ServerAPI> = ServerAPI[P]['req'];
 export type PickServerRes<P extends keyof ServerAPI> = ServerAPI[P]['res'];
@@ -14,3 +15,4 @@ export interface ResponseData<T = any> {
 
 export * from './test';
 export * from './user';
+export * from './upper';

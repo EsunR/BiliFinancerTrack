@@ -1,6 +1,6 @@
 import { GET_TEST_ERROR_API, GET_TEST_SUCCESS_API } from '.';
 
-export interface ITestApi {
+export interface TestApi {
   [GET_TEST_SUCCESS_API]: {
     req: never;
     res: {
