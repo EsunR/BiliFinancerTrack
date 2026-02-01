@@ -22,6 +22,11 @@ import fs from 'fs';
 import path from 'path';
 import { Op } from 'sequelize';
 import { BASE_PROMPT } from './constances';
+import {
+  GET_VIDEOS_ANALYSIS_API,
+  GET_VIDEOS_LIST_API,
+  PickServerRes,
+} from '@express-vue-template/types/api';
 
 /**
  * 获取UP主视频列表
@@ -70,8 +75,9 @@ export async function getVideosList(
         videoType: video.videoType,
         status: video.status,
         statusFailed: video.statusFailed,
+        processing: video.processing,
         upper,
-      };
+      } as PickServerRes<typeof GET_VIDEOS_LIST_API>[number];
     })
   );
 }
@@ -218,10 +224,15 @@ export async function postVideosAnalyze(
     }
   }
 
-  processVideo().catch((err) => {
-    logger.error(`视频处理失败 ${video.bvid}：${err.message}`);
-    video.update({ statusFailed: true });
-  });
+  await video.update({ processing: true });
+  processVideo()
+    .catch((err) => {
+      logger.error(`视频处理失败 ${video.bvid}：${err.message}`);
+      video.update({ statusFailed: true });
+    })
+    .finally(async () => {
+      await video.update({ processing: false });
+    });
 }
 
 /**
@@ -239,8 +250,23 @@ export async function getVideosAnalysisVersions(
     throw new Error('404-视频不存在');
   }
 
-  // TODO: 从 Analysis 表查询该视频的所有分析版本
-  const versions: GetVideosAnalysisVersionsRes['versions'] = [];
+  const analyses = await analysisModel.findAll({
+    where: { videoId: id },
+    order: [
+      ['createdAt', 'DESC'],
+      ['id', 'DESC'],
+    ],
+  });
+
+  const versions: GetVideosAnalysisVersionsRes['versions'] = analyses.map(
+    (analysis) => {
+      return {
+        id: analysis.id,
+        promptVersion: analysis.promptVersion,
+        model: analysis.model,
+      } as GetVideosAnalysisVersionsRes['versions'][number];
+    }
+  );
 
   return {
     videoId: id,
@@ -267,6 +293,22 @@ export async function getVideosAnalysis(
     throw new Error('404-视频不存在');
   }
 
-  // TODO: 从 Analysis 表查询指定分析
-  throw new Error('501-分析功能暂未实现');
+  const analysis = await analysisModel.findOne({
+    where: {
+      id: analysisId,
+      videoId: id,
+    },
+  });
+
+  if (!analysis) {
+    throw new Error('404-分析不存在');
+  }
+
+  return {
+    id: analysis.id,
+    content: analysis.content,
+    model: analysis.model,
+    promptVersion: analysis.promptVersion,
+    videoId: analysis.videoId,
+  } as PickServerRes<typeof GET_VIDEOS_ANALYSIS_API>;
 }

@@ -6,6 +6,7 @@ export function autoRetry<T>(
   options?: {
     maxTryTimes?: number;
     intervalMs?: number;
+    onRetry?: () => void;
   }
 ) {
   const { maxTryTimes = 10, intervalMs = 500 } = options || {};
@@ -18,10 +19,14 @@ export function autoRetry<T>(
           resolve(result);
         })
         .catch((error) => {
-          console.log('retrying');
           attempt++;
           if (attempt < maxTryTimes) {
-            setTimeout(execute, intervalMs);
+            setTimeout(() => {
+              if (options?.onRetry) {
+                options.onRetry();
+              }
+              execute();
+            }, intervalMs);
           } else {
             reject(error);
           }

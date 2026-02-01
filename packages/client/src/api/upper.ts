@@ -10,6 +10,9 @@ import {
 } from '@express-vue-template/types/api';
 import { AxiosResponse } from 'axios';
 
+/**
+ * 创建 UP 主
+ */
 export async function postUppersCreate(
   data: PickServerReq<typeof POST_UPPERS_CREATE_API>
 ) {
@@ -18,6 +21,9 @@ export async function postUppersCreate(
   >;
 }
 
+/**
+ * 获取 UP 主列表
+ */
 export async function getUppersList(
   params?: PickServerReq<typeof GET_UPPERS_LIST_API>
 ) {
@@ -26,6 +32,9 @@ export async function getUppersList(
   >;
 }
 
+/**
+ * 获取 UP 主详情
+ */
 export async function getUppersDetail(
   params: PickServerReq<typeof GET_UPPERS_DETAIL_API>
 ) {
@@ -34,14 +43,20 @@ export async function getUppersDetail(
   })) as AxiosResponse<PickServerRes<typeof GET_UPPERS_DETAIL_API>>;
 }
 
+/**
+ * 同步 UP 主数据
+ */
 export async function postUppersSync(
-  params: PickServerReq<typeof POST_UPPERS_SYNC_API>
+  body: PickServerReq<typeof POST_UPPERS_SYNC_API>
 ) {
-  return (await request.post(POST_UPPERS_SYNC_API, null, {
-    params,
-  })) as AxiosResponse<PickServerRes<typeof POST_UPPERS_SYNC_API>>;
+  return (await request.post(POST_UPPERS_SYNC_API, body)) as AxiosResponse<
+    PickServerRes<typeof POST_UPPERS_SYNC_API>
+  >;
 }
 
+/**
+ * 删除 UP 主
+ */
 export async function deleteUppersDelete(
   params: PickServerReq<typeof DELETE_UPPERS_DELETE_API>
 ) {

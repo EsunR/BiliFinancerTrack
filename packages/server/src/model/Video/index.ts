@@ -1,7 +1,6 @@
 import {
   VideoInstance,
   VideoStatusEnum,
-  VideoType,
 } from '@express-vue-template/types/model';
 import db from '@server/db';
 import { DataTypes, Sequelize } from 'sequelize';
@@ -49,6 +48,10 @@ export function createVideoModel(sequelize: Sequelize) {
       defaultValue: VideoStatusEnum.PENDING,
     },
     statusFailed: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+    processing: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },

@@ -26,6 +26,7 @@ export interface VideoListItem
     | 'videoType'
     | 'status'
     | 'statusFailed'
+    | 'processing'
   > {
   upper: UpperAttributes;
 }
@@ -94,10 +95,7 @@ export interface GetVideosAnalysisVersionsReq {
 }
 
 export interface AnalysisVersionItem
-  extends Pick<AnalysisAttributes, 'id' | 'promptVersion' | 'model'> {
-  isDefault: boolean;
-  contentPreview: string;
-}
+  extends Pick<AnalysisAttributes, 'id' | 'promptVersion' | 'model'> {}
 
 export interface GetVideosAnalysisVersionsRes {
   videoId: number;
@@ -115,9 +113,7 @@ export interface GetVideosAnalysisRes
   extends Pick<
     AnalysisAttributes,
     'id' | 'videoId' | 'promptVersion' | 'model' | 'content'
-  > {
-  isDefault: boolean;
-}
+  > {}
 
 // ==================== VideoApi ====================
 

@@ -8,14 +8,13 @@ import {
   PickServerRes,
 } from '@express-vue-template/types/api';
 import { VideoStatusEnum } from '@express-vue-template/types/model';
-import { autoRetry } from '@express-vue-template/utils';
 import db from '@server/db';
 import analysisModel from '@server/model/Analysis';
 import transcriptModel from '@server/model/Transcript';
 import upperModel from '@server/model/Upper';
 import videoModel from '@server/model/Video';
 import ResBody from '@server/struct/ResBody';
-import { getBiliClient } from '@server/utils/bili';
+import { biliApiAutoRetry, getBiliClient } from '@server/utils/bili';
 import { Router } from 'express';
 import { parseDuration } from './controller';
 
@@ -34,7 +33,7 @@ upperRouter.post(POST_UPPERS_CREATE_API, async (req, res) => {
   let record = await upperModel.findOne({ where: { uid: uidValue } });
   if (!record) {
     const biliClient = getBiliClient();
-    const userInfo = await autoRetry(() =>
+    const userInfo = await biliApiAutoRetry(() =>
       biliClient.user.getUserInfo(uidValue)
     );
     const name = userInfo.name;
@@ -140,7 +139,7 @@ upperRouter.post(POST_UPPERS_SYNC_API, async (req, res) => {
   const biliClient = getBiliClient();
 
   // 获取 UP 主的视频列表
-  const data = await autoRetry(() =>
+  const data = await biliApiAutoRetry(() =>
     biliClient.user.getVideos({
       mid: record.uid,
     })

@@ -1,7 +1,7 @@
 {
   "development": {
     "dialect": "sqlite",
-    "storage": "../../server/public/database/express-vue-template.sqlite"
+    "storage": "../server/public/database/express-vue-template.sqlite"
   },
   "production": {
     "dialect": "sqlite",

@@ -3,6 +3,7 @@ import { PUBLIC_DIR_PATH } from '@server/config/paths';
 import path from 'path';
 import fs from 'fs';
 import { logger } from './log';
+import { autoRetry } from '@express-vue-template/utils';
 
 let biliClient: Client | null = null;
 
@@ -51,5 +52,15 @@ export function downloadVideo(bvid: string) {
     } catch (err) {
       reject(err);
     }
+  });
+}
+
+export function biliApiAutoRetry<T>(fn: () => Promise<T>) {
+  return autoRetry(fn, {
+    maxTryTimes: 20,
+    intervalMs: 250,
+    onRetry: () => {
+      logger.debug('B 站 API 请求重试中...');
+    },
   });
 }

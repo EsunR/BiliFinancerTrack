@@ -27,6 +27,7 @@ export interface VideoAttributes {
   videoType: VideoType;
   status: VideoStatusEnum;
   statusFailed: boolean;
+  processing: boolean;
 }
 
 export interface VideoCreationAttribute
