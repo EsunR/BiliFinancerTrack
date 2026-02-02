@@ -2,6 +2,7 @@ import {
   GET_VIDEOS_ANALYSIS_API,
   GET_VIDEOS_ANALYSIS_VERSIONS_API,
   GET_VIDEOS_DETAIL_API,
+  GET_VIDEOS_TRANSCRIPTS_API,
   GET_VIDEOS_LIST_API,
   POST_VIDEOS_ANALYZE_API,
   PickServerReq,
@@ -61,6 +62,25 @@ videoRouter.get(GET_VIDEOS_DETAIL_API, async (req, res) => {
 });
 
 /**
+ * 获取视频转写信息
+ */
+videoRouter.get(GET_VIDEOS_TRANSCRIPTS_API, async (req, res) => {
+  const { id } = req.query as unknown as PickServerReq<
+    typeof GET_VIDEOS_TRANSCRIPTS_API
+  >;
+
+  const idValue = typeof id === 'string' ? Number(id) : id;
+
+  const data = await videoController.getVideosTranscripts(idValue);
+
+  res.json(
+    new ResBody({
+      data,
+    })
+  );
+});
+
+/**
  * 触发视频分析
  */
 videoRouter.post(POST_VIDEOS_ANALYZE_API, async (req, res, next) => {
@@ -76,17 +96,15 @@ videoRouter.post(POST_VIDEOS_ANALYZE_API, async (req, res, next) => {
     throw new Error(vResult.errMsg);
   }
 
-  let { id, promptVersion } = req.body as unknown as PickServerReq<
+  let { id, prompt = '' } = req.body as unknown as PickServerReq<
     typeof POST_VIDEOS_ANALYZE_API
   >;
 
-  if (!promptVersion) {
-    promptVersion = randomUUID().slice(0, 8);
-  }
+  const promptVersion = randomUUID().slice(0, 8);
 
   const idValue = typeof id === 'string' ? Number(id) : id;
 
-  await videoController.postVideosAnalyze(idValue, promptVersion);
+  await videoController.postVideosAnalyze(idValue, promptVersion, prompt);
 
   res.json(
     new ResBody({

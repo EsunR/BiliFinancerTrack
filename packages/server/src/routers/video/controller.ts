@@ -25,6 +25,7 @@ import { BASE_PROMPT } from './constances';
 import {
   GET_VIDEOS_ANALYSIS_API,
   GET_VIDEOS_LIST_API,
+  GET_VIDEOS_TRANSCRIPTS_API,
   PickServerRes,
 } from '@express-vue-template/types/api';
 
@@ -125,12 +126,49 @@ export async function getVideosDetail(id: number): Promise<GetVideosDetailRes> {
 }
 
 /**
+ * 获取视频转写信息
+ */
+export async function getVideosTranscripts(
+  id: number
+): Promise<PickServerRes<typeof GET_VIDEOS_TRANSCRIPTS_API>> {
+  if (!Number.isFinite(id)) {
+    throw new Error('id 必须为数字');
+  }
+
+  const video = await videoModel.findByPk(id);
+  if (!video) {
+    throw new Error('404-视频不存在');
+  }
+
+  const transcripts = await transcriptModel.findAll({
+    where: { videoId: id },
+    order: [['id', 'ASC']],
+  });
+
+  return transcripts.map((t) => {
+    return {
+      id: (t as any).id,
+      videoId: (t as any).videoId,
+      content: (t as any).content,
+      timestamps: (t as any).timestamps,
+      partStartAt: (t as any).partStartAt,
+      model: (t as any).model,
+      modelOutputRaw: (t as any).modelOutputRaw,
+      duration: (t as any).duration,
+      createdAt: (t as any).createdAt,
+      updatedAt: (t as any).updatedAt,
+    } as any;
+  });
+}
+
+/**
  * 触发视频分析
  */
 export async function postVideosAnalyze(
   id: number,
-  promptVersion: string = 'default'
-) {
+  promptVersion: string,
+  prompt: string
+): Promise<void> {
   if (!Number.isFinite(id)) {
     throw new Error('id 必须为数字');
   }
@@ -152,6 +190,7 @@ export async function postVideosAnalyze(
       'downloads/videos',
       `${bvid}.mp3`
     );
+    // === 下载视频 ===
     if (
       video.status === VideoStatusEnum.PENDING ||
       fs.existsSync(videoPath) === false
@@ -161,6 +200,7 @@ export async function postVideosAnalyze(
       logger.info(`视频 ${bvid} 下载完成`);
       await video.update({ status: VideoStatusEnum.DOWNLOADED });
     }
+    // === 音频分离 ===
     if (
       video.status === VideoStatusEnum.DOWNLOADED ||
       fs.existsSync(audioPath) === false
@@ -193,6 +233,7 @@ export async function postVideosAnalyze(
       });
       await video.update({ status: VideoStatusEnum.TRANSCRIBED });
     }
+    // === AI 分析 ===
     if (video.status === VideoStatusEnum.TRANSCRIBED) {
       const transcripts = await transcriptModel.findAll({
         where: { videoId: id },
@@ -204,7 +245,7 @@ export async function postVideosAnalyze(
       const chatResponse = await deepSeekV3Chat.chat([
         {
           role: 'system',
-          content: BASE_PROMPT,
+          content: prompt || BASE_PROMPT,
         },
         {
           role: 'user',

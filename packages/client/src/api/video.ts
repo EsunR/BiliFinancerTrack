@@ -4,6 +4,7 @@ import {
   GET_VIDEOS_ANALYSIS_VERSIONS_API,
   GET_VIDEOS_DETAIL_API,
   GET_VIDEOS_LIST_API,
+  GET_VIDEOS_TRANSCRIPTS_API,
   POST_VIDEOS_ANALYZE_API,
   PickServerReq,
   PickServerRes,
@@ -63,4 +64,15 @@ export async function getVideosAnalysis(
   return (await request.get(GET_VIDEOS_ANALYSIS_API, {
     params,
   })) as AxiosResponse<PickServerRes<typeof GET_VIDEOS_ANALYSIS_API>>;
+}
+
+/**
+ * 获取视频转写内容
+ */
+export async function getVideosTranscripts(
+  params: PickServerReq<typeof GET_VIDEOS_TRANSCRIPTS_API>
+) {
+  return (await request.get(GET_VIDEOS_TRANSCRIPTS_API, {
+    params,
+  })) as AxiosResponse<PickServerRes<typeof GET_VIDEOS_TRANSCRIPTS_API>>;
 }

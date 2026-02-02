@@ -121,6 +121,9 @@ importers:
       lodash-es:
         specifier: ^4.17.21
         version: 4.17.21
+      markdown-it:
+        specifier: ^14.1.0
+        version: 14.1.0
       qs:
         specifier: ^6.11.1
         version: 6.11.1
@@ -140,6 +143,9 @@ importers:
       '@types/lodash-es':
         specifier: ^4.17.9
         version: 4.17.9
+      '@types/markdown-it':
+        specifier: ^14.1.2
+        version: 14.1.2
       '@types/qs':
         specifier: ^6.9.10
         version: 6.9.10
@@ -1693,6 +1699,10 @@ packages:
       '@types/node': 18.18.5
     dev: true
 
+  /@types/linkify-it@5.0.0:
+    resolution: {integrity: sha512-sVDA58zAw4eWAffKOaQH5/5j3XeayukzDk+ewSsnv3p4yJEZHCCzMDiZM8e0OUrRvmpGZ85jf4yDHkHsgBNr9Q==}
+    dev: true
+
   /@types/lodash-es@4.17.9:
     resolution: {integrity: sha512-ZTcmhiI3NNU7dEvWLZJkzG6ao49zOIjEgIE0RgV7wbPxU0f2xT3VSAHw2gmst8swH6V0YkLRGp4qPlX/6I90MQ==}
     dependencies:
@@ -1700,6 +1710,17 @@ packages:
 
   /@types/lodash@4.14.199:
     resolution: {integrity: sha512-Vrjz5N5Ia4SEzWWgIVwnHNEnb1UE1XMkvY5DGXrAeOGE9imk0hgTHh5GyDjLDJi9OTCn9oo9dXH1uToK1VRfrg==}
+
+  /@types/markdown-it@14.1.2:
+    resolution: {integrity: sha512-promo4eFwuiW+TfGxhi+0x3czqTYJkG8qB17ZUJiVF10Xm7NLVRSLUsfRTU/6h1e24VvRnXCx+hG7li58lkzog==}
+    dependencies:
+      '@types/linkify-it': 5.0.0
+      '@types/mdurl': 2.0.0
+    dev: true
+
+  /@types/mdurl@2.0.0:
+    resolution: {integrity: sha512-RGdgjQUZba5p6QEFAVx2OGb8rQDL/cPRG7GiedRzMcJ1tYnUANBncjbSB1NRGwbvjcPeikRABz2nshyPk1bhWg==}
+    dev: true
 
   /@types/mime@1.3.3:
     resolution: {integrity: sha512-Ys+/St+2VF4+xuY6+kDIXGxbNRO0mesVg0bbxEfB97Od1Vjpjx9KD1qxs64Gcb3CWPirk9Xe+PT4YiiHQ9T+eg==}
@@ -2417,7 +2438,6 @@ packages:
 
   /argparse@2.0.1:
     resolution: {integrity: sha512-8+9WqebbFzpX9OR+Wa6O29asIogeRMzcGtAINdpMHHyAg10f05aSFVBbcEqGf/PXw1EjAZ+q2/bEBg3DvurK3Q==}
-    dev: true
 
   /arr-diff@4.0.0:
     resolution: {integrity: sha512-YVIQ82gZPGBebQV/a8dar4AitzCQs0jjXwMPZllpXMaGjXPYVUawSxQrRsjhjupyVxEvbHgUmIhKVlND+j02kA==}
@@ -5567,6 +5587,12 @@ packages:
     engines: {node: '>=10'}
     dev: true
 
+  /linkify-it@5.0.0:
+    resolution: {integrity: sha512-5aHCbzQRADcdP+ATqnDuhhJ/MRIqDkZX5pyjFHRRysS8vZ5AbqGEoFIb6pYHPZ+L/OC2Lc+xT8uHVVR5CAK/wQ==}
+    dependencies:
+      uc.micro: 2.1.0
+    dev: false
+
   /lint-staged@13.2.1:
     resolution: {integrity: sha512-8gfzinVXoPfga5Dz/ZOn8I2GOhf81Wvs+KwbEXQn/oWZAvCVS2PivrXfVbFJc93zD16uC0neS47RXHIjXKYZQw==}
     engines: {node: ^14.13.1 || >=16.0.0}
@@ -5786,6 +5812,18 @@ packages:
       object-visit: 1.0.1
     dev: false
 
+  /markdown-it@14.1.0:
+    resolution: {integrity: sha512-a54IwgWPaeBCAAsv13YgmALOF1elABB08FxO9i+r4VFk5Vl4pKokRPeX8u5TCgSsPi6ec1otfLjdOpVcgbpshg==}
+    hasBin: true
+    dependencies:
+      argparse: 2.0.1
+      entities: 4.5.0
+      linkify-it: 5.0.0
+      mdurl: 2.0.0
+      punycode.js: 2.3.1
+      uc.micro: 2.1.0
+    dev: false
+
   /matchdep@2.0.0:
     resolution: {integrity: sha512-LFgVbaHIHMqCRuCZyfCtUOq9/Lnzhi7Z0KFUE2fhD54+JN2jLh3hC02RLkqauJ3U4soU6H1J3tfj/Byk7GoEjA==}
     engines: {node: '>= 0.10.0'}
@@ -5801,6 +5839,10 @@ packages:
   /math-intrinsics@1.1.0:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
     engines: {node: '>= 0.4'}
+    dev: false
+
+  /mdurl@2.0.0:
+    resolution: {integrity: sha512-Lf+9+2r+Tdp5wXDXC4PcIBjTDtq4UKjCPMQhKIuzpJNW0b96kVqSwW0bT7FhRSfmAiFYgP+SCRvdrDozfh0U5w==}
     dev: false
 
   /media-typer@1.1.0:
@@ -6796,6 +6838,11 @@ packages:
       duplexify: 3.7.1
       inherits: 2.0.4
       pump: 2.0.1
+    dev: false
+
+  /punycode.js@2.3.1:
+    resolution: {integrity: sha512-uxFIHU0YlHYhDQtV4R9J6a52SLx28BCjT+4ieh7IGbgwVJWO+km431c4yRlREUAsAmt/uMjQUyQHNEPf0M39CA==}
+    engines: {node: '>=6'}
     dev: false
 
   /punycode@2.3.0:
@@ -8051,6 +8098,10 @@ packages:
     resolution: {integrity: sha512-mI4WrpHsbCIcwT9cF4FZvr80QUeKvsUsUvKDoR+X/7XHQH98xYD8YHZg7ANtz2GtZt/CBq2QJ0thkGJMHfqc1w==}
     engines: {node: '>=14.17'}
     hasBin: true
+
+  /uc.micro@2.1.0:
+    resolution: {integrity: sha512-ARDJmphmdvUk6Glw7y9DQ2bFkKBHwQHLi2lsaH6PPmz/Ka9sFOBsBluozhDltWmnv9u/cF6Rt87znRTPV+yp/A==}
+    dev: false
 
   /ufo@1.3.1:
     resolution: {integrity: sha512-uY/99gMLIOlJPwATcMVYfqDSxUR9//AUcgZMzwfSTJPDKzA1S8mX4VLqa+fiAtveraQUBCz4FFcwVZBGbwBXIw==}

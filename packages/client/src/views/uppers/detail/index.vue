@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { getUppersDetail } from '@client/api/upper';
 import { getVideosList } from '@client/api/video';
@@ -19,9 +19,41 @@ const route = useRoute();
 const upperDetail = ref<GetUppersDetailRes | null>(null);
 const videos = ref<GetVideosListRes>([]);
 const loading = ref(false);
+let autoRefreshTimer: number | null = null;
 
 const upperId = computed(() => Number(route.query.id));
 const isValidUpperId = computed(() => Number.isFinite(upperId.value));
+
+// 检查是否有处于处理中的视频
+const hasProcessingVideo = computed(() =>
+  videos.value.some((video) => video.processing)
+);
+
+// 清除定时器
+const clearAutoRefreshTimer = () => {
+  if (autoRefreshTimer !== null) {
+    clearInterval(autoRefreshTimer);
+    autoRefreshTimer = null;
+  }
+};
+
+// 启动自动刷新定时器
+const startAutoRefresh = () => {
+  clearAutoRefreshTimer();
+  autoRefreshTimer = window.setInterval(async () => {
+    if (!isValidUpperId.value) {
+      clearAutoRefreshTimer();
+      return;
+    }
+    const videosRes = await getVideosList({ upperId: upperId.value });
+    videos.value = videosRes.data;
+
+    // 如果没有处理中的视频，停止自动刷新
+    if (!hasProcessingVideo.value) {
+      clearAutoRefreshTimer();
+    }
+  }, 5000);
+};
 
 const fetchDetail = async () => {
   if (!isValidUpperId.value) {
@@ -37,19 +69,38 @@ const fetchDetail = async () => {
 
     upperDetail.value = detailRes.data;
     videos.value = videosRes.data;
+
+    // 如果有处理中的视频，启动自动刷新
+    if (hasProcessingVideo.value) {
+      startAutoRefresh();
+    }
   } finally {
     loading.value = false;
   }
 };
 
+// 监听处理中视频的变化
+watch(hasProcessingVideo, (newVal) => {
+  if (newVal) {
+    startAutoRefresh();
+  } else {
+    clearAutoRefreshTimer();
+  }
+});
+
 watch(
   () => route.query.id,
   () => {
+    clearAutoRefreshTimer();
     fetchDetail();
   }
 );
 
 onMounted(fetchDetail);
+
+onUnmounted(() => {
+  clearAutoRefreshTimer();
+});
 </script>
 
 <template>

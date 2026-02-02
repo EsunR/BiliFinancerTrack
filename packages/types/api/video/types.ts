@@ -4,6 +4,7 @@ import {
   GET_VIDEOS_DETAIL_API,
   GET_VIDEOS_LIST_API,
   POST_VIDEOS_ANALYZE_API,
+  GET_VIDEOS_TRANSCRIPTS_API,
 } from '.';
 import {
   AnalysisAttributes,
@@ -82,8 +83,10 @@ export interface GetVideosDetailRes
 // ==================== POST /videos/analyze ====================
 
 export interface PostVideosAnalyzeReq {
+  /** 视频 ID */
   id: number;
-  promptVersion?: string; // 可选，默认使用 default 版本
+  /** 自定义 Prompt */
+  prompt?: string;
 }
 
 export interface PostVideosAnalyzeRes {}
@@ -115,6 +118,15 @@ export interface GetVideosAnalysisRes
     'id' | 'videoId' | 'promptVersion' | 'model' | 'content'
   > {}
 
+// ==================== GET /videos/transcripts ====================
+
+export interface GetVideosTranscriptsReq {
+  /** 视频 ID */
+  id: number;
+}
+
+export type GetVideosTranscriptsRes = TranscriptAttributes[];
+
 // ==================== VideoApi ====================
 
 export interface VideoApi {
@@ -137,5 +149,9 @@ export interface VideoApi {
   [GET_VIDEOS_ANALYSIS_API]: {
     req: GetVideosAnalysisReq;
     res: GetVideosAnalysisRes;
+  };
+  [GET_VIDEOS_TRANSCRIPTS_API]: {
+    req: GetVideosTranscriptsReq;
+    res: GetVideosTranscriptsRes;
   };
 }

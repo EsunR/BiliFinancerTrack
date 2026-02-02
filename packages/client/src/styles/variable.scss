@@ -21,3 +21,8 @@ $p-10: 2.5rem;
 
 $rounded-sm: 0.125rem;
 $rounded-default: 0.25rem;
+
+:root {
+  --header-height: var(--spacing) * 19;
+  --page-bottom-gap: var(--spacing) * 4;
+}

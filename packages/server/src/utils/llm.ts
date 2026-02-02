@@ -34,5 +34,5 @@ export class LLM {
 }
 
 export const deepSeekV3Chat = new LLM({
-  model: 'deepseek-v3.2',
+  model: 'deepseek-reasoner',
 });

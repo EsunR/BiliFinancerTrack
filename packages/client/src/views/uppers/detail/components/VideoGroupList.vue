@@ -74,7 +74,7 @@ const handleVideoClick = (video: VideoListItem) => {
 
   router.push({
     name: 'VideosDetail',
-    query: { id: String(video.id) },
+    query: { id: String(video.id), upperId: String(video.upper.id) },
   });
 };
 
@@ -141,7 +141,7 @@ const handleTranscribe = async (video: VideoListItem) => {
                   :disabled="video.processing"
                   @click.stop="handleTranscribe(video)"
                 >
-                  执行转写
+                  AI 分析
                 </el-button>
               </div>
             </div>
