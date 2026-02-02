@@ -102,12 +102,6 @@ export async function getVideosDetail(id: number): Promise<GetVideosDetailRes> {
     throw new Error('404-UP 主不存在');
   }
 
-  // TODO: 获取转写信息（关联表查询）
-  const transcript: GetVideosDetailRes['transcript'] = null;
-
-  // TODO: 获取分析信息（关联表查询）
-  const analysis: GetVideosDetailRes['analysis'] = null;
-
   return {
     id: video.id,
     upperId: video.upperId,
@@ -120,8 +114,7 @@ export async function getVideosDetail(id: number): Promise<GetVideosDetailRes> {
     videoType: video.videoType,
     status: video.status,
     statusFailed: video.statusFailed,
-    transcript,
-    analysis,
+    processing: video.processing,
   };
 }
 

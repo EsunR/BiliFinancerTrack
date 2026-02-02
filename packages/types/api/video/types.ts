@@ -74,10 +74,9 @@ export interface GetVideosDetailRes
     | 'videoType'
     | 'status'
     | 'statusFailed'
+    | 'processing'
   > {
   upperName: string;
-  transcript: TranscriptDetail | null;
-  analysis: AnalysisDetail | null;
 }
 
 // ==================== POST /videos/analyze ====================

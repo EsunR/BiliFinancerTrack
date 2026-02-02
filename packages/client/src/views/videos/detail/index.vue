@@ -9,10 +9,16 @@ import {
   getVideosAnalysisVersions,
   getVideosAnalysis,
   getVideosTranscripts,
+  getVideosDetail,
+  postVideosAnalyze,
 } from '@client/api/video';
-import type { AnalysisVersionItem } from '@express-vue-template/types/api/video/types';
+import type {
+  AnalysisVersionItem,
+  GetVideosDetailRes,
+} from '@express-vue-template/types/api/video/types';
 import MarkdownRenderer from './components/MarkdownRenderer.vue';
 import TranscriptTimeline from './components/TranscriptTimeline.vue';
+import { Back, Plus } from '@element-plus/icons-vue';
 
 defineOptions({
   name: 'VideoDetailPage',
@@ -23,6 +29,11 @@ const router = useRouter();
 const videoId = computed(() => Number(route.query.id));
 const upperId = computed(() => Number(route.query.upperId));
 const hasUpperId = computed(() => Number.isFinite(upperId.value));
+const autoFreshTimer = ref<number | null>(null);
+
+// 视频信息相关
+const videoDetail = ref<GetVideosDetailRes | null>(null);
+const videoDetailLoading = ref(false);
 
 // 分析相关
 const analysisVersions = ref<AnalysisVersionItem[]>([]);
@@ -35,6 +46,10 @@ const transcripts = ref<TranscriptAttributes[]>([]);
 const mergedTimestamps = ref<
   Array<TimestampSegment & { absoluteStart: number; absoluteEnd: number }>
 >([]);
+
+const isVideoProcessing = computed(() => {
+  return videoDetail.value?.processing ?? false;
+});
 
 /**
  * 获取分析版本列表
@@ -86,6 +101,19 @@ const fetchTranscripts = async () => {
 };
 
 /**
+ * 获取视频信息
+ */
+const fetchVideoInfo = async () => {
+  try {
+    videoDetailLoading.value = true;
+    const { data } = await getVideosDetail({ id: videoId.value });
+    videoDetail.value = data;
+  } finally {
+    videoDetailLoading.value = false;
+  }
+};
+
+/**
  * 合并所有段落的时间戳
  */
 const mergeTimestamps = (data: TranscriptAttributes[]) => {
@@ -121,28 +149,66 @@ const handleAnalysisChange = () => {
  */
 const handleBack = () => {
   if (hasUpperId.value) {
-    router.push({
-      name: 'UppersDetail',
-      query: { id: String(upperId.value) },
-    });
+    router.go(-1);
     return;
   }
 
   router.back();
 };
 
+const handleAddAnalysis = async () => {
+  await postVideosAnalyze({ id: videoId.value });
+  await fetchVideoInfo();
+};
+
+watch(
+  isVideoProcessing,
+  (newVal) => {
+    if (newVal) {
+      if (autoFreshTimer.value) {
+        clearInterval(autoFreshTimer.value);
+      }
+      autoFreshTimer.value = window.setInterval(async () => {
+        await fetchVideoInfo();
+        if (!isVideoProcessing.value && autoFreshTimer.value) {
+          await fetchAnalysisVersions();
+          selectedAnalysisId.value = analysisVersions.value[0]?.id;
+          clearInterval(autoFreshTimer.value);
+          autoFreshTimer.value = null;
+        }
+      }, 5000);
+    } else {
+      if (autoFreshTimer.value) {
+        clearInterval(autoFreshTimer.value);
+        autoFreshTimer.value = null;
+      }
+    }
+  },
+  { immediate: true }
+);
+
 onMounted(() => {
   fetchAnalysisVersions();
   fetchTranscripts();
+  fetchVideoInfo();
+});
+
+onBeforeUnmount(() => {
+  if (autoFreshTimer.value) {
+    clearInterval(autoFreshTimer.value);
+    autoFreshTimer.value = null;
+  }
 });
 </script>
 
 <template>
   <div class="video-detail-page">
     <!-- 左侧：AI 分析内容 -->
-    <section class="section-card analysis-section">
+    <section class="card-area analysis-section">
+      <div class="mb-2">
+        <el-link type="default" :icon="Back" @click="handleBack">返回</el-link>
+      </div>
       <div class="analysis-header">
-        <el-button @click="handleBack">返回</el-button>
         <el-select
           v-model="selectedAnalysisId"
           placeholder="选择分析版本"
@@ -156,6 +222,14 @@ onMounted(() => {
             :value="version.id"
           />
         </el-select>
+        <el-button
+          :icon="Plus"
+          type="primary"
+          :loading="isVideoProcessing"
+          @click="handleAddAnalysis"
+        >
+          {{ isVideoProcessing ? 'AI 分析中' : '新增分析' }}
+        </el-button>
       </div>
 
       <markdown-renderer
@@ -165,7 +239,7 @@ onMounted(() => {
     </section>
 
     <!-- 右侧：视频和文本时间轴 -->
-    <section class="section-card transcript-section">
+    <section class="card-area transcript-section">
       <!-- 视频展示区域（暂不实现） -->
       <div class="video-placeholder">视频展示区域（暂未实现）</div>
 
@@ -182,24 +256,73 @@ onMounted(() => {
 .video-detail-page {
   display: flex;
   gap: 24px;
-  height: calc(100vh - var(--header-height) - var(--page-bottom-gap));
   box-sizing: border-box;
 
-  .section-card {
-    background: #fff;
-    border-radius: 12px;
-    padding: 24px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
+  // 桌面端布局
+  @media (min-width: 769px) {
+    height: calc(100vh - var(--header-height) - var(--page-bottom-gap));
+
+    .card-area {
+      overflow: hidden;
+    }
+
+    .analysis-section,
+    .transcript-section {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .timeline-wrapper {
+      flex: 1;
+      overflow: hidden;
+
+      :deep(.transcript-timeline) {
+        flex: 1;
+        overflow-y: auto;
+      }
+    }
+  }
+
+  // 移动端布局
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 16px;
+    padding-bottom: 24px;
+
+    .card-area {
+      overflow: visible;
+    }
+
+    .analysis-section,
+    .transcript-section {
+      width: 100%;
+    }
+
+    .analysis-header {
+      flex-direction: column;
+      align-items: stretch !important;
+
+      .version-select {
+        width: 100%;
+      }
+    }
+
+    .timeline-wrapper {
+      max-height: 600px;
+
+      :deep(.transcript-timeline) {
+        overflow-y: auto;
+      }
+    }
+  }
+
+  .card-area {
     display: flex;
     flex-direction: column;
   }
 
   // 左侧 AI 分析区域
   .analysis-section {
-    flex: 1;
-    min-width: 0;
-
     .analysis-header {
       display: flex;
       align-items: center;
@@ -214,9 +337,6 @@ onMounted(() => {
 
   // 右侧视频和时间轴区域
   .transcript-section {
-    flex: 1;
-    min-width: 0;
-
     .video-placeholder {
       height: 280px;
       background: #f5f7fa;
@@ -227,24 +347,29 @@ onMounted(() => {
       color: #909399;
       font-size: 16px;
       margin-bottom: 20px;
+
+      @media (max-width: 768px) {
+        height: 200px;
+        font-size: 14px;
+      }
     }
 
     .timeline-wrapper {
-      flex: 1;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
 
       .timeline-title {
         font-size: 18px;
         font-weight: 600;
         margin-bottom: 16px;
         color: #303133;
+
+        @media (max-width: 768px) {
+          font-size: 16px;
+        }
       }
 
       :deep(.transcript-timeline) {
-        flex: 1;
-        overflow-y: auto;
         padding-right: 8px;
 
         &::-webkit-scrollbar {
