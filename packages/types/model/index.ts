@@ -1,5 +1,6 @@
 export * from './analysis';
 export * from './dailyReport';
+export * from './holding';
 export * from './model';
 export * from './transcript';
 export * from './upper';

@@ -2,17 +2,16 @@ import {
   GET_VIDEOS_ANALYSIS_API,
   GET_VIDEOS_ANALYSIS_VERSIONS_API,
   GET_VIDEOS_DETAIL_API,
-  GET_VIDEOS_TRANSCRIPTS_API,
   GET_VIDEOS_LIST_API,
+  GET_VIDEOS_TRANSCRIPTS_API,
   POST_VIDEOS_ANALYZE_API,
   PickServerReq,
   PickServerRes,
 } from '@express-vue-template/types/api';
 import ResBody from '@server/struct/ResBody';
-import { Router } from 'express';
 import { verifyRequestArgs } from '@server/utils';
+import { Router } from 'express';
 import * as videoController from './controller';
-import { randomUUID } from 'crypto';
 
 const videoRouter = Router();
 
@@ -100,11 +99,9 @@ videoRouter.post(POST_VIDEOS_ANALYZE_API, async (req, res, next) => {
     typeof POST_VIDEOS_ANALYZE_API
   >;
 
-  const promptVersion = randomUUID().slice(0, 8);
-
   const idValue = typeof id === 'string' ? Number(id) : id;
 
-  await videoController.postVideosAnalyze(idValue, promptVersion, prompt);
+  await videoController.postVideosAnalyze(idValue, prompt);
 
   res.json(
     new ResBody({

@@ -1,4 +1,5 @@
 import analysisModel from './Analysis';
+import holdingModel from './Holding';
 import transcriptModel from './Transcript';
 import upperModel from './Upper';
 import videoModel from './Video';
@@ -36,4 +37,6 @@ export function setupAssociations() {
     foreignKey: 'videoId',
     as: 'video',
   });
+
+  holdingModel;
 }

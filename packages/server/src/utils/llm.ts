@@ -33,6 +33,6 @@ export class LLM {
   }
 }
 
-export const deepSeekV3Chat = new LLM({
+export const deepSeekV3Research = new LLM({
   model: 'deepseek-reasoner',
 });

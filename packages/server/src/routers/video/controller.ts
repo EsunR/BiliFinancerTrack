@@ -1,3 +1,9 @@
+import {
+  GET_VIDEOS_ANALYSIS_API,
+  GET_VIDEOS_LIST_API,
+  GET_VIDEOS_TRANSCRIPTS_API,
+  PickServerRes,
+} from '@express-vue-template/types/api';
 import type {
   GetVideosAnalysisRes,
   GetVideosAnalysisVersionsRes,
@@ -9,25 +15,20 @@ import {
   VideoStatusEnum,
 } from '@express-vue-template/types/model';
 import { PUBLIC_DIR_PATH } from '@server/config/paths';
+import { VIDEO_ANALYSIS_BASE_PROMPT } from '@server/config/prompts';
 import analysisModel from '@server/model/Analysis';
 import transcriptModel from '@server/model/Transcript';
 import upperModel from '@server/model/Upper';
 import videoModel from '@server/model/Video';
 import { downloadVideo } from '@server/utils/bili';
 import { convertVideoToAudio } from '@server/utils/ffmpeg';
-import { deepSeekV3Chat } from '@server/utils/llm';
+import { deepSeekV3Research } from '@server/utils/llm';
 import { logger } from '@server/utils/log';
 import { groqWhisper } from '@server/utils/transcriber';
+import { randomUUID } from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { Op } from 'sequelize';
-import { BASE_PROMPT } from './constances';
-import {
-  GET_VIDEOS_ANALYSIS_API,
-  GET_VIDEOS_LIST_API,
-  GET_VIDEOS_TRANSCRIPTS_API,
-  PickServerRes,
-} from '@express-vue-template/types/api';
 
 /**
  * 获取UP主视频列表
@@ -159,12 +160,13 @@ export async function getVideosTranscripts(
  */
 export async function postVideosAnalyze(
   id: number,
-  promptVersion: string,
-  prompt: string
+  prompt?: string
 ): Promise<void> {
   if (!Number.isFinite(id)) {
     throw new Error('id 必须为数字');
   }
+
+  const promptVersion = randomUUID().slice(0, 8);
 
   const video = await videoModel.findByPk(id);
   if (!video) {
@@ -235,10 +237,10 @@ export async function postVideosAnalyze(
         return;
       }
       logger.info(`开始视频分析 ${bvid} ...`);
-      const chatResponse = await deepSeekV3Chat.chat([
+      const chatResponse = await deepSeekV3Research.chat([
         {
           role: 'system',
-          content: prompt || BASE_PROMPT,
+          content: prompt || VIDEO_ANALYSIS_BASE_PROMPT,
         },
         {
           role: 'user',
