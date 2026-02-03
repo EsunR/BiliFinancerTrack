@@ -8,10 +8,6 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     ElButton: typeof import('element-plus/es')['ElButton'];
-    ElButtonGroup: typeof import('element-plus/es')['ElButtonGroup'];
-    ElCheckbox: typeof import('element-plus/es')['ElCheckbox'];
-    ElCheckboxGroup: typeof import('element-plus/es')['ElCheckboxGroup'];
-    ElCol: typeof import('element-plus/es')['ElCol'];
     ElConfigProvider: typeof import('element-plus/es')['ElConfigProvider'];
     ElDatePicker: typeof import('element-plus/es')['ElDatePicker'];
     ElDialog: typeof import('element-plus/es')['ElDialog'];
@@ -22,20 +18,13 @@ declare module 'vue' {
     ElInput: typeof import('element-plus/es')['ElInput'];
     ElInputNumber: typeof import('element-plus/es')['ElInputNumber'];
     ElLink: typeof import('element-plus/es')['ElLink'];
-    ElMenu: typeof import('element-plus/es')['ElMenu'];
-    ElMenuItem: typeof import('element-plus/es')['ElMenuItem'];
     ElOption: typeof import('element-plus/es')['ElOption'];
-    ElRow: typeof import('element-plus/es')['ElRow'];
     ElSelect: typeof import('element-plus/es')['ElSelect'];
     ElSkeleton: typeof import('element-plus/es')['ElSkeleton'];
-    ElSubMenu: typeof import('element-plus/es')['ElSubMenu'];
     ElTable: typeof import('element-plus/es')['ElTable'];
     ElTableColumn: typeof import('element-plus/es')['ElTableColumn'];
-    ElUpload: typeof import('element-plus/es')['ElUpload'];
     Header: typeof import('./src/components/Layout/Header.vue')['default'];
     Layout: typeof import('./src/components/Layout/index.vue')['default'];
-    Menu: typeof import('./src/components/Layout/Menu.vue')['default'];
-    PanoViewer: typeof import('./src/components/PanoViewer/index.vue')['default'];
     RouterLink: typeof import('vue-router')['RouterLink'];
     RouterView: typeof import('vue-router')['RouterView'];
   }

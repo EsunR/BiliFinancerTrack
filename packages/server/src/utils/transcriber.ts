@@ -19,9 +19,13 @@ abstract class Transcriber {
   abstract audio2Text(audioPath: string): Promise<AudioTextInfo>;
 }
 
-const proxyAgent = new undici.ProxyAgent(
-  process.env.HTTP_PROXY || process.env.http_proxy || ''
-);
+let proxyAgent = undefined;
+
+if (process.env.HTTP_PROXY || process.env.http_proxy) {
+  proxyAgent = new undici.ProxyAgent(
+    process.env.HTTP_PROXY || process.env.http_proxy || ''
+  );
+}
 
 export class GroqWhisper extends Transcriber {
   private _groq: OpenAI;

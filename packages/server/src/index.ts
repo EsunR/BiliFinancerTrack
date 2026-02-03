@@ -1,7 +1,6 @@
 import cors from 'cors';
 import express from 'express';
 import { logger } from './utils/log';
-import { NODE_PORT } from './config';
 import { STATIC_DIR_PATH } from './config/paths';
 import dbGenerator from './db/db_generator';
 import errorHandler from './middleware/errorHandler';
@@ -11,6 +10,9 @@ import cookieParser from 'cookie-parser';
 import scheduler from './scheduler';
 import { dailyReportsGenerate } from './routers/dailyReports/controller';
 import { syncAndAnalyzeAllUppersVideo } from './routers/upper/controller';
+import { checkEnv, loadEnv } from './utils/env';
+
+checkEnv();
 
 const log = logger;
 
@@ -64,5 +66,6 @@ scheduler.registerScheduledTask(
 log.info('Scheduled tasks registered');
 
 // Listen
-app.listen(NODE_PORT);
-log.info(`serve running on port ${NODE_PORT}`);
+const port = loadEnv('NODE_PORT');
+app.listen(port);
+log.info(`serve running on port ${port}`);

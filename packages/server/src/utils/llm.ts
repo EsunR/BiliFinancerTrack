@@ -1,16 +1,14 @@
 import OpenAI from 'openai';
 import type { ChatCompletionMessageParam } from 'openai/resources';
-import dotenv from 'dotenv';
-
-dotenv.config();
+import { loadEnv } from './env';
 
 export class LLM {
   _openai: OpenAI;
   _model: string;
   constructor(options: { apiKey?: string; baseURL?: string; model: string }) {
     const {
-      apiKey = process.env.LLM_API_KEY,
-      baseURL = process.env.LLM_BASE_URL,
+      apiKey = loadEnv('LLM_API_KEY'),
+      baseURL = loadEnv('LLM_BASE_URL'),
       model,
     } = options || {};
     this._model = model;

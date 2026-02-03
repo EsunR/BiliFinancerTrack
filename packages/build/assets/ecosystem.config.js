@@ -4,7 +4,7 @@ const path = require('path');
 module.exports = {
   apps: [
     {
-      name: 'express-vue-template',
+      name: 'BiliFinancerTrack',
       script: 'npm run db:init && npm run db:migrate && npm run start',
       env: {
         NODE_ENV: 'production',

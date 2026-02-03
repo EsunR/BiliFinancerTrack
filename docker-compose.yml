@@ -1,0 +1,13 @@
+services:
+  bili-financer-track:
+    image: esunr/bili-finacer-track:latest
+    container_name: bili-financer-track
+    restart: unless-stopped
+    ports:
+      - "8093:8093"
+    environment:
+      GROQ_SK: ${GROQ_SK}
+      LLM_API_KEY: ${LLM_API_KEY}
+      LLM_BASE_URL: ${LLM_BASE_URL}
+    volumes:
+      - /path/to/local:/etc/work/server/public
