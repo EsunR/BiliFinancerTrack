@@ -214,6 +214,8 @@ export async function getDailyReportsList(
     reportDate: report.reportDate,
     content: report.content,
     includeVideoIds: report.includeVideoIds,
+    createdAt: report.createdAt,
+    updatedAt: report.updatedAt,
   }));
 }
 

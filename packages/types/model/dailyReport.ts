@@ -8,6 +8,8 @@ export interface DailyReportAttributes {
   reportDate: Date;
   content: string;
   includeVideoIds: string[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface DailyReportCreationAttribute

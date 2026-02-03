@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { ElButton } from 'element-plus';
 import { getUppersList } from '@client/api/upper';
 import type { GetUppersRes } from '@express-vue-template/types/api/upper/types';
 import UpperListPanel from './components/UpperListPanel.vue';
@@ -28,6 +29,10 @@ const onUpperClick = (upperId: number) => {
   router.push({ name: 'UppersDetail', query: { id: upperId } });
 };
 
+const goToCalendar = () => {
+  router.push({ path: '/calendar' });
+};
+
 onMounted(fetchUppers);
 </script>
 
@@ -37,6 +42,14 @@ onMounted(fetchUppers);
       <div class="title">UP 主列表</div>
       <div class="header-actions">
         <div class="subtitle">共 {{ uppers.length }} 位</div>
+        <el-button
+          type="primary"
+          plain
+          style="margin-right: 8px"
+          @click="goToCalendar"
+        >
+          日历页面
+        </el-button>
         <upper-create-dialog @created="fetchUppers" />
       </div>
     </div>

@@ -22,6 +22,14 @@ export function createDailyReportModel(sequelize: Sequelize) {
         type: DataTypes.JSON,
         defaultValue: [],
       },
+      createdAt: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW,
+      },
+      updatedAt: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW,
+      },
     }
   );
 

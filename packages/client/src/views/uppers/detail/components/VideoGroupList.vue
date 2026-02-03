@@ -18,6 +18,8 @@ defineOptions({
 const props = defineProps<{
   videos: GetVideosListRes;
   loading: boolean;
+  allowAllClick?: boolean;
+  showTitle?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -68,7 +70,10 @@ const groupedVideos = computed(() => {
 });
 
 const handleVideoClick = (video: VideoListItem) => {
-  if (video.processing || video.status !== VideoStatusEnum.TRANSCRIBED) {
+  if (
+    !props.allowAllClick &&
+    (video.processing || video.status !== VideoStatusEnum.TRANSCRIBED)
+  ) {
     return;
   }
 
@@ -95,7 +100,7 @@ const handleTranscribe = async (video: VideoListItem) => {
 
 <template>
   <div class="video-section">
-    <div class="section-title">视频列表</div>
+    <div v-if="props.showTitle !== false" class="section-title">视频列表</div>
     <div v-if="loading" class="loading">加载中...</div>
     <el-empty v-else-if="!videos.length" description="暂无视频" />
     <div v-else class="video-groups">
@@ -109,8 +114,9 @@ const handleTranscribe = async (video: VideoListItem) => {
             :class="{
               'is-transcribed': video.status !== VideoStatusEnum.TRANSCRIBED,
               'is-clickable':
-                !video.processing &&
-                video.status === VideoStatusEnum.TRANSCRIBED,
+                props.allowAllClick ||
+                (!video.processing &&
+                  video.status === VideoStatusEnum.TRANSCRIBED),
               'is-processing': video.processing,
             }"
             @click="handleVideoClick(video)"
