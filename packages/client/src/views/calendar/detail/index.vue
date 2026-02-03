@@ -15,7 +15,7 @@
       <el-button
         class="generate-button"
         type="primary"
-        :loading="generating"
+        :loading="generating || hasProcessing"
         @click="handleGenerate"
       >
         生成日报
@@ -62,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { ArrowLeft } from '@element-plus/icons-vue';
@@ -98,6 +98,8 @@ const reports = ref<DailyReportItem[]>([]);
 const selectedReportId = ref<number>();
 const videosLoading = ref(false);
 const videos = ref<GetVideosListRes>([]);
+const hasProcessing = ref(false);
+const isPolling = ref(false);
 
 const dateParam = computed(() =>
   route.query.date ? String(route.query.date) : ''
@@ -152,17 +154,20 @@ const getReportLabel = (report: DailyReportItem) => {
   );
 };
 
-const fetchReports = async () => {
+const fetchReports = async (showError = true) => {
   if (!dateParam.value) {
-    ElMessage.error('缺少日期参数');
+    if (showError) {
+      ElMessage.error('缺少日期参数');
+    }
     return;
   }
 
   loading.value = true;
   try {
     const { data } = await getDailyReportsList({ date: dateParam.value });
-    reports.value = (data || []) as DailyReportItem[];
+    reports.value = data.list;
     selectedReportId.value = sortedReports.value[0]?.id;
+    hasProcessing.value = data.processing;
   } finally {
     loading.value = false;
   }
@@ -195,9 +200,38 @@ const handleGenerate = async () => {
   generating.value = true;
   try {
     await postDailyReportsGenerate({ date: dateParam.value });
-    ElMessage.success('日报生成已提交，请稍后刷新页面');
+    ElMessage.success('日报生成已提交，正在处理中...');
+
+    // 轮询接口直到 processing 为 false
+    await pollUntilProcessingDone();
   } finally {
     generating.value = false;
+  }
+};
+
+const pollUntilProcessingDone = async () => {
+  isPolling.value = true;
+
+  try {
+    while (isPolling.value) {
+      try {
+        await fetchReports(false); // 不显示错误提示
+
+        if (!hasProcessing.value) {
+          ElMessage.success('日报生成完成！');
+          return;
+        }
+
+        // 等待2秒后继续轮询
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      } catch (error) {
+        console.error('轮询失败:', error);
+        // 继续轮询，不中断
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      }
+    }
+  } finally {
+    isPolling.value = false;
   }
 };
 
@@ -209,6 +243,10 @@ watch(dateParam, () => {
 onMounted(() => {
   fetchReports();
   fetchVideos();
+});
+
+onUnmounted(() => {
+  isPolling.value = false;
 });
 </script>
 

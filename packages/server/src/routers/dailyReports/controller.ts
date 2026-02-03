@@ -14,6 +14,8 @@ import { logger } from '@server/utils/log';
 import { deepSeekV3Research } from '@server/utils/llm';
 import { Op } from 'sequelize';
 
+const dailyReportProcessingSet = new Set<number>();
+
 /**
  * 获取目标日期的起止范围
  */
@@ -130,6 +132,10 @@ export async function dailyReportsGenerate(
 ): Promise<PickServerRes<typeof POST_DAILYREPORTS_GENERATE_API>> {
   const { reportDate } = getDateRange(date);
 
+  if (dailyReportProcessingSet.has(reportDate.getTime())) {
+    throw new Error('409-该日期的日报正在生成中，请勿重复触发');
+  }
+
   const resolvedVideoIds = await resolveVideoIds(date, videoIds);
   logger.debug(
     `开始生成 ${reportDate
@@ -176,9 +182,14 @@ export async function dailyReportsGenerate(
     });
   };
 
-  task().catch((err) => {
-    logger.error(`日报生成失败：${err.message}`);
-  });
+  dailyReportProcessingSet.add(reportDate.getTime());
+  task()
+    .catch((err) => {
+      logger.error(`日报生成失败：${err.message}`);
+    })
+    .finally(() => {
+      dailyReportProcessingSet.delete(reportDate.getTime());
+    });
 
   return {} as PickServerRes<typeof POST_DAILYREPORTS_GENERATE_API>;
 }
@@ -186,9 +197,7 @@ export async function dailyReportsGenerate(
 /**
  * 获取日报列表
  */
-export async function getDailyReportsList(
-  date?: string
-): Promise<PickServerRes<typeof GET_DAILYREPORTS_LIST_API>> {
+export async function getDailyReportsList(date?: string) {
   const whereCondition = date
     ? (() => {
         const { startDate, endDate } = getDateRange(date);
@@ -209,14 +218,19 @@ export async function getDailyReportsList(
     ],
   });
 
-  return reports.map((report) => ({
-    id: report.id,
-    reportDate: report.reportDate,
-    content: report.content,
-    includeVideoIds: report.includeVideoIds,
-    createdAt: report.createdAt,
-    updatedAt: report.updatedAt,
-  }));
+  return {
+    list: reports.map((report) => ({
+      id: report.id,
+      reportDate: report.reportDate,
+      content: report.content,
+      includeVideoIds: report.includeVideoIds,
+      createdAt: report.createdAt,
+      updatedAt: report.updatedAt,
+    })),
+    processing: dailyReportProcessingSet.has(
+      getDateRange(date).reportDate.getTime()
+    ),
+  } as PickServerRes<typeof GET_DAILYREPORTS_LIST_API>;
 }
 
 /**

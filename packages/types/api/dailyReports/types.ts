@@ -16,7 +16,10 @@ export interface GetDailyReportsListReq {
   date?: string;
 }
 
-export type GetDailyReportsListRes = DailyReportAttributes[];
+export interface GetDailyReportsListRes {
+  list: DailyReportAttributes[];
+  processing: boolean;
+}
 
 export interface GetDailyReportsMonthReq {
   /** 年份 */
