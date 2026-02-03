@@ -1,69 +1,67 @@
-# ===== 项目施工中🚧 =====
+# BiliFinancerTrack
 
-# 1. 项目概述
+## 项目用途
+自动跟踪指定 B 站财经 UP 主的最新视频/直播，完成音频转写与 AI 分析，生成结构化观点与日报，帮助节省观看时间。
 
-该项目可以自动每日跟踪所配置的 B 站财经 UP 主的最新视频、以及直播内容，并对视频内容进行总结和整理，向用户输出这些财经 UP 主对时长的观点，并让 AI 参考这些观点，最终以日报的形式进行投资建议的分析，从而节约用户观看视频的时间。
+## Docker 部署（使用已发布镜像）
+镜像：`esunr/bili-finacer-track`
 
-# 2. 项目模块设计
+1) 新建 `docker-compose.yml`：
+```yaml
+services:
+  bili-financer-track:
+    image: esunr/bili-finacer-track:latest
+    container_name: bili-financer-track
+    restart: unless-stopped
+    ports:
+      - "8093:8093"
+    environment:
+      NODE_ENV: production
+      NODE_PORT: "8093"
+      IS_DOCKER: "TRUE"
+      GROQ_SK: ${GROQ_SK}
+      LLM_API_KEY: ${LLM_API_KEY}
+      LLM_BASE_URL: ${LLM_BASE_URL}
+      DB_FORCE: ${DB_FORCE:-FALSE}
+    volumes:
+      - bili-financer-track-data:/etc/work/server/public
 
-### 模块1：UP 主视频追踪
+volumes:
+  bili-financer-track-data:
+```
 
-**功能点：“添加 UP 主” 按钮** 
+2) 新建 `.env`：
+```
+GROQ_SK=你的_groq_api_key
+LLM_API_KEY=你的_llm_api_key
+LLM_BASE_URL=你的_llm_base_url
+```
 
-点击后会弹出弹窗，登记 UP 主的基础信息，用户输入 UP 主 ID 后，会主动拉取 UP 主头像、名称等内容。
+3) 启动：
+```
+docker compose up -d
+```
 
-**功能点：UP 主卡片**
+访问：`http://localhost:8093`
 
-- 显示 UP 主的封面、用户名，下方显示当日该 UP 主已经发布了多少个视频、已经总结完成了多少个视频；
-- 提供“同步”按钮，用于用户点击后主动拉取 UP 主的最新视频；
-- 点击卡片后会进入 UP 主的详情；
+> 说明：数据库、日志、下载文件会写入容器内 `/etc/work/server/public`，通过命名卷持久化。
 
-**功能点：UP 主详情**
+## 开发模式启动
+> 需要 Node.js 与 pnpm
 
-- 将 up 主的视频以天为纬度展示在时间轴列表中；
-- 列表中每个视频是一张单独的卡片，显示视频封面以及视频标题，点击视频卡片后会进入视频详情；
+- 安装依赖：
+```
+pnpm install
+```
 
-**功能点：为 UP 主上传直播视频**
+- 启动服务端：
+```
+pnpm dev:server
+```
 
-在 UP 主详情页面，提供一个“上传 UP 主直播”按钮，可以将 UP 主的直播进行上传（或者提供一个本地路径），上传后的直播讲会作为普通视频一样自动进入语音转写、AI 分析的流程。
+- 启动客户端（新终端）：
+```
+pnpm dev:client
+```
 
-**功能点：视频详情**
-
-- 顶部展示视频标题、发布时间、UP 主等基础信息
-- 左侧显示 AI 总结内容，右侧显示时间戳
-- 默认的总结内容为一个固定的 Prompt，只是对视频内容进行简单总结
-- 用户可以自定义 Prompt，并选择重新生成 AI 总结，每个总结结果会有一个版本 ID
-
-### 模块2：日报
-
-**功能点：日历视图**
-
-日报模块提供一个日历视图，点击可以进入每日详情
-
-**功能点：日报设置**
-
-- 点击“设置”按钮进入日报设置模块
-- 可以选择“自动”或者“手动”两种日报总结模式
-- 在自动模式下，需要选择每日几点开启AI总结
-- 可以设置当前持仓状态，作为上下文传递给 AI 总结，AI 会给出持仓建议
-
-**功能点：当日详情**
-
-- 进入当日详情页面，会展示出 AI 总结出的笔记列表（Markdown 格式），笔记的最后会给出持仓建议
-- 点击“生成日报”可以重新生成当前的日报，生成时可以勾选参与分析的 UP 主，以及该 UP 主参与分析的视频/直播
-
-### 模块3：模型管理
-
-**功能点：文本生成模型管理**
-
-- 增删用于文本生成的模型，基于 openai sdk 可调用的；
-- 内置：
-	- DeepSeek
-	- 豆包
-	- 智谱 AI
-
-**功能点：音频转写模型管理**
-
-- 增删用于音频转写的模型
-- 仅支持：
-	- groq
+环境变量要求见 [packages/server/src/utils/env.ts](packages/server/src/utils/env.ts)。

@@ -11,11 +11,14 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 RUN echo $http_proxy
 
 # 安装系统依赖
-RUN apk update && apk add --no-cache ffmpeg
+RUN apk update && apk add --no-cache ffmpeg tzdata
 
-# 配置 npm 并安装全局依赖
-RUN npm config set registry https://registry.npmmirror.com/ \
-    && npm install pm2 -g
+# 设置默认时区
+RUN ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+    && echo Asia/Shanghai > /etc/timezone
+
+# 配置 npm
+RUN npm config set registry https://registry.npmmirror.com/
 
 # 创建工作目录和普通用户
 RUN mkdir -p /etc/work \
@@ -32,7 +35,8 @@ RUN npm install --production && mkdir -p server/public
 # 设置环境变量
 ENV NODE_ENV=production \
     NODE_PORT=8093 \
-    IS_DOCKER=TRUE
+    IS_DOCKER=TRUE \
+    TZ=Asia/Shanghai
 
 # 定义挂载点
 VOLUME /etc/work/server/public
@@ -41,4 +45,4 @@ VOLUME /etc/work/server/public
 EXPOSE 8093
 
 # 启动命令
-CMD ["pm2-runtime", "start", "ecosystem.config.js"]
+CMD ["sh", "-c", "npm run db:init && npm run db:migrate && npm run start"]
