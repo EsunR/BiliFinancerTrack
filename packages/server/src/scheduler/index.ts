@@ -19,7 +19,7 @@ const tasks: Map<string, ScheduledTask> = new Map();
 export function registerScheduledTask(
   id: string,
   cronExpression: string,
-  callback: () => Promise<void> | void
+  callback: Function
 ): void {
   if (tasks.has(id)) {
     log.warn(`Task ${id} already exists`);

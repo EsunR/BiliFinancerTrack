@@ -4,6 +4,7 @@ import {
   GET_UPPERS_DETAIL_API,
   GET_UPPERS_LIST_API,
   POST_UPPERS_CREATE_API,
+  POST_UPPERS_SYNC_ALL_API,
   POST_UPPERS_SYNC_API,
   PickServerReq,
   PickServerRes,
@@ -63,4 +64,15 @@ export async function deleteUppersDelete(
   return (await request.delete(DELETE_UPPERS_DELETE_API, {
     params,
   })) as AxiosResponse<PickServerRes<typeof DELETE_UPPERS_DELETE_API>>;
+}
+
+/**
+ * 同步目标日期所有 UP 主视频
+ */
+export async function postUppersSyncAll(
+  params: PickServerReq<typeof POST_UPPERS_SYNC_ALL_API>
+) {
+  return (await request.post(POST_UPPERS_SYNC_ALL_API, params, {
+    timeout: 60 * 1000,
+  })) as AxiosResponse<PickServerRes<typeof POST_UPPERS_SYNC_ALL_API>>;
 }

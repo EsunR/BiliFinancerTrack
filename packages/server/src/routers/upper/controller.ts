@@ -7,6 +7,7 @@ import type {
   POST_UPPERS_SYNC_API,
   DELETE_UPPERS_DELETE_API,
   DeleteUppersDeleteRes,
+  PostUppersSyncAllRes,
 } from '@express-vue-template/types/api';
 import { VideoStatusEnum } from '@express-vue-template/types/model';
 import db from '@server/db';
@@ -15,6 +16,9 @@ import transcriptModel from '@server/model/Transcript';
 import upperModel from '@server/model/Upper';
 import videoModel from '@server/model/Video';
 import { biliApiAutoRetry, getBiliClient } from '@server/utils/bili';
+import { logger } from '@server/utils/log';
+import dayjs from 'dayjs';
+import { startVideosAnalyze } from '../video/controller';
 
 /**
  * 解析视频时长字符串（如 "05:58"）为秒数
@@ -32,7 +36,7 @@ export function parseDuration(durationStr: string): number {
 /**
  * 新增 UP 主
  */
-export async function postUppersCreate(
+export async function addUpper(
   uid: number | string
 ): Promise<PickServerRes<typeof POST_UPPERS_CREATE_API>> {
   const uidValue = typeof uid === 'string' ? Number(uid) : uid;
@@ -120,7 +124,7 @@ export async function getUppersDetail(
 /**
  * 同步 UP 主视频
  */
-export async function postUppersSyncVideos(
+export async function syncUpperVideo(
   id: number
 ): Promise<PickServerRes<typeof POST_UPPERS_SYNC_API>> {
   if (!Number.isFinite(id)) {
@@ -249,5 +253,98 @@ export async function deleteUpper(
   } catch (error) {
     await transaction.rollback();
     throw error;
+  }
+}
+
+/**
+ * 同步目标日期所有 UP 主视频并分析
+ */
+export async function syncAndAnalyzeAllUppersVideo(date?: string) {
+  try {
+    logger.info('开始自动触发同步...');
+
+    // 获取所有 UP 主
+    const uppers = await upperModel.findAll();
+    logger.info(`找到 ${uppers.length} 个 UP 主需要同步`);
+    const today = dayjs(date || new Date()).startOf('day');
+    const syncResults: PostUppersSyncAllRes = [];
+
+    // 遍历每个 UP 主
+    for (const upper of uppers) {
+      try {
+        logger.info(`同步 UP 主: ${upper.name} (id: ${upper.id}) 的视频`);
+
+        // 同步该 UP 主的视频
+        const syncResult = await syncUpperVideo(upper.id);
+        logger.info(
+          `为 UP 主: ${upper.name} 新增了 ${syncResult.syncCount} 个新视频`
+        );
+
+        // 获取当日新增的视频
+        const todayVideos = await videoModel.findAll({
+          where: {
+            upperId: upper.id,
+            publishAt: {
+              [require('sequelize').Op.gte]: today.startOf('day').toDate(),
+              [require('sequelize').Op.lt]: today.endOf('day').toDate(),
+            },
+          },
+          order: [['publishAt', 'DESC']],
+        });
+
+        logger.info(
+          `找到 ${todayVideos.length} 个今天发布的视频，属于 UP 主: ${upper.name}`
+        );
+
+        // 对每个当日新发布的视频执行 AI 分析
+        let analyzedCount = 0;
+        for (const video of todayVideos) {
+          try {
+            // 检查是否已有分析记录
+            const existingAnalysis = await analysisModel.findOne({
+              where: { videoId: video.id },
+            });
+
+            if (existingAnalysis) {
+              logger.info(
+                `视频 ${video.title} (id: ${video.id}) 已经分析过了, 跳过...`
+              );
+              continue;
+            }
+
+            if (video.processing) {
+              logger.info(
+                `视频 ${video.title} (id: ${video.id}) 正在处理，跳过...`
+              );
+              continue;
+            }
+
+            logger.info(`分析视频: ${video.title} (id: ${video.id})`);
+            await startVideosAnalyze(video.id);
+            analyzedCount++;
+            logger.info(`成功分析视频: ${video.title}`);
+          } catch (error) {
+            logger.error(
+              `分析视频 ${video.title} (id: ${video.id}) 失败:`,
+              error
+            );
+            // 继续处理下一个视频，不中断流程
+          }
+        }
+
+        syncResults.push({
+          upperName: upper.name,
+          addVideoCount: syncResult.syncCount,
+          emitAnalyzeCount: analyzedCount,
+        });
+      } catch (error) {
+        logger.error(`同步 UP 主 ${upper.name} (id: ${upper.id}) 失败:`, error);
+        // 继续处理下一个 UP 主，不中断流程
+      }
+    }
+    logger.info(`同步任务总结: ${JSON.stringify(syncResults, null, 2)}`);
+    return syncResults;
+  } catch (error) {
+    logger.error('Auto trigger sync failed:', error);
   }
 }

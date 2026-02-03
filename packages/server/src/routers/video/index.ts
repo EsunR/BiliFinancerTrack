@@ -101,7 +101,7 @@ videoRouter.post(POST_VIDEOS_ANALYZE_API, async (req, res, next) => {
 
   const idValue = typeof id === 'string' ? Number(id) : id;
 
-  await videoController.postVideosAnalyze(idValue, prompt);
+  await videoController.startVideosAnalyze(idValue, prompt);
 
   res.json(
     new ResBody({

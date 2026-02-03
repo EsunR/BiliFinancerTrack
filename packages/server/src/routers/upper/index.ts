@@ -3,8 +3,10 @@ import {
   GET_UPPERS_DETAIL_API,
   GET_UPPERS_LIST_API,
   POST_UPPERS_CREATE_API,
+  POST_UPPERS_SYNC_ALL_API,
   POST_UPPERS_SYNC_API,
   PickServerReq,
+  PickServerRes,
 } from '@express-vue-template/types/api';
 import ResBody from '@server/struct/ResBody';
 import { Router } from 'express';
@@ -18,7 +20,7 @@ const upperRouter = Router();
 upperRouter.post(POST_UPPERS_CREATE_API, async (req, res) => {
   const { uid } = req.body as PickServerReq<typeof POST_UPPERS_CREATE_API>;
 
-  const data = await upperController.postUppersCreate(uid);
+  const data = await upperController.addUpper(uid);
 
   res.json(
     new ResBody({
@@ -69,7 +71,7 @@ upperRouter.post(POST_UPPERS_SYNC_API, async (req, res) => {
 
   const idValue = typeof id === 'string' ? Number(id) : id;
 
-  const data = await upperController.postUppersSyncVideos(idValue);
+  const data = await upperController.syncUpperVideo(idValue);
 
   res.json(
     new ResBody({
@@ -93,6 +95,21 @@ upperRouter.delete(DELETE_UPPERS_DELETE_API, async (req, res) => {
   res.json(
     new ResBody({
       data,
+    })
+  );
+});
+
+/**
+ * 同步目标日期的所有 UP 主视频
+ */
+upperRouter.post(POST_UPPERS_SYNC_ALL_API, async (req, res) => {
+  const { date } = req.body as PickServerReq<typeof POST_UPPERS_SYNC_ALL_API>;
+
+  const result = await upperController.syncAndAnalyzeAllUppersVideo(date);
+
+  res.json(
+    new ResBody({
+      data: result as PickServerRes<typeof POST_UPPERS_SYNC_ALL_API>,
     })
   );
 });

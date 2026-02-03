@@ -158,7 +158,7 @@ export async function getVideosTranscripts(
 /**
  * 触发视频分析
  */
-export async function postVideosAnalyze(
+export async function startVideosAnalyze(
   id: number,
   prompt?: string
 ): Promise<void> {
@@ -171,6 +171,10 @@ export async function postVideosAnalyze(
   const video = await videoModel.findByPk(id);
   if (!video) {
     throw new Error('404-视频不存在');
+  }
+
+  if (video.processing) {
+    throw new Error('视频正在处理中，请稍后再试');
   }
 
   async function processVideo() {
@@ -260,7 +264,7 @@ export async function postVideosAnalyze(
     }
   }
 
-  await video.update({ processing: true });
+  await video.update({ processing: true, statusFailed: false });
   processVideo()
     .catch((err) => {
       logger.error(`视频处理失败 ${video.bvid}：${err.message}`);
@@ -347,4 +351,23 @@ export async function getVideosAnalysis(
     promptVersion: analysis.promptVersion,
     videoId: analysis.videoId,
   } as PickServerRes<typeof GET_VIDEOS_ANALYSIS_API>;
+}
+
+export async function resumeAllProcessingVideos() {
+  const processingVideos = await videoModel.findAll({
+    where: { processing: true },
+  });
+
+  if (processingVideos.length) {
+    for (const video of processingVideos) {
+      logger.info(`正在恢复视频处理任务 id: ${video.id}, bvid: ${video.bvid}`);
+      startVideosAnalyze(video.id).catch((err) => {
+        logger.error(
+          `视频处理任务恢复失败 video id: ${video.id}, bvid: ${video.bvid}, error: ${err.message}`
+        );
+      });
+    }
+  } else {
+    logger.info('没有视频处理任务需要自动恢复');
+  }
 }

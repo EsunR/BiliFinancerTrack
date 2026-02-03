@@ -3,6 +3,7 @@ import {
   GET_UPPERS_DETAIL_API,
   GET_UPPERS_LIST_API,
   POST_UPPERS_CREATE_API,
+  POST_UPPERS_SYNC_ALL_API,
   POST_UPPERS_SYNC_API,
 } from '.';
 import { UpperAttributes } from '../../model/upper';
@@ -54,6 +55,16 @@ export interface DeleteUppersDeleteRes {
   id: number;
 }
 
+export interface PostUppersSyncAllReq {
+  date: string;
+}
+
+export type PostUppersSyncAllRes = {
+  upperName: string;
+  addVideoCount: number;
+  emitAnalyzeCount: number;
+}[];
+
 export interface UpperApi {
   [POST_UPPERS_CREATE_API]: {
     req: PostUppersReq;
@@ -74,5 +85,9 @@ export interface UpperApi {
   [DELETE_UPPERS_DELETE_API]: {
     req: DeleteUppersDeleteReq;
     res: DeleteUppersDeleteRes;
+  };
+  [POST_UPPERS_SYNC_ALL_API]: {
+    req: PostUppersSyncAllReq;
+    res: PostUppersSyncAllRes;
   };
 }

@@ -1,11 +1,12 @@
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { ElButton } from 'element-plus';
-import { getUppersList } from '@client/api/upper';
+import { ElButton, ElNotification } from 'element-plus';
+import { getUppersList, postUppersSyncAll } from '@client/api/upper';
 import type { GetUppersRes } from '@express-vue-template/types/api/upper/types';
 import UpperListPanel from './components/UpperListPanel.vue';
 import UpperCreateDialog from './components/UpperCreateDialog.vue';
+import dayjs from 'dayjs';
 
 defineOptions({
   name: 'UppersListPage',
@@ -14,6 +15,7 @@ defineOptions({
 const router = useRouter();
 const uppers = ref<GetUppersRes>([]);
 const loading = ref(false);
+const syncAllVideoLoading = ref(false);
 
 const fetchUppers = async () => {
   try {
@@ -22,6 +24,28 @@ const fetchUppers = async () => {
     uppers.value = res.data;
   } finally {
     loading.value = false;
+  }
+};
+
+const syncAllVideo = async () => {
+  try {
+    syncAllVideoLoading.value = true;
+    const result = await postUppersSyncAll({
+      date: dayjs().format('YYYY-MM-DD'),
+    });
+    ElNotification.success({
+      title: '同步完成',
+      message: result.data
+        .map(
+          (item) =>
+            `【${item.upperName}】新增: ${item.addVideoCount}, 触发分析: ${item.emitAnalyzeCount}`
+        )
+        .join('<br/>'),
+      duration: 8000,
+      dangerouslyUseHTMLString: true,
+    });
+  } finally {
+    syncAllVideoLoading.value = false;
   }
 };
 
@@ -45,9 +69,11 @@ onMounted(fetchUppers);
         <el-button
           type="primary"
           plain
-          style="margin-right: 8px"
-          @click="goToCalendar"
+          :loading="syncAllVideoLoading"
+          @click="syncAllVideo"
+          >同步所有视频</el-button
         >
+        <el-button type="primary" style="margin: 0" plain @click="goToCalendar">
           日历页面
         </el-button>
         <upper-create-dialog @created="fetchUppers" />
