@@ -84,8 +84,6 @@ export interface GetVideosDetailRes
 export interface PostVideosAnalyzeReq {
   /** 视频 ID */
   id: number;
-  /** 自定义 Prompt */
-  prompt?: string;
 }
 
 export interface PostVideosAnalyzeRes {}

@@ -29,9 +29,6 @@ const emit = defineEmits<{
 const router = useRouter();
 const analyzingId = ref<number | null>(null);
 
-const formatDate = (time: string | number | Date, format = 'YYYY-MM-DD') =>
-  filters.formatTime(time instanceof Date ? time.toISOString() : time, format);
-
 const statusMeta: Record<
   VideoStatusEnum,
   { label: string; className: string }
@@ -161,7 +158,8 @@ const handleTranscribe = async (video: VideoListItem) => {
                   {{ statusMeta[video.status].label }}
                 </span>
                 <span class="publish">
-                  发布于 {{ formatDate(video.publishAt) }}
+                  发布于
+                  {{ dayjs(video.publishAt).format('YYYY-MM-DD HH:mm:ss') }}
                 </span>
               </div>
             </div>
@@ -205,7 +203,7 @@ const handleTranscribe = async (video: VideoListItem) => {
 
 .video-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 16px;
 }
 

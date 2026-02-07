@@ -20,7 +20,9 @@ export type PostUppersRes = Pick<
 export type GetUppersReq = Record<string, never>;
 
 export type GetUppersRes = Array<
-  Pick<UpperAttributes, 'id' | 'uid' | 'name' | 'avatar' | 'createdAt'>
+  Pick<UpperAttributes, 'id' | 'uid' | 'name' | 'avatar' | 'createdAt'> & {
+    lastVideoPublishedAt: Date | null;
+  }
 >;
 
 export interface GetUppersDetailReq {

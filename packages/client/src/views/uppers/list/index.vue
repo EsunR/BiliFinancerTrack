@@ -63,9 +63,11 @@ onMounted(fetchUppers);
 <template>
   <div class="uppers-list-page">
     <div class="page-header">
-      <div class="title">UP 主列表</div>
-      <div class="header-actions">
+      <div class="title-left">
+        <div class="title">UP 主列表</div>
         <div class="subtitle">共 {{ uppers.length }} 位</div>
+      </div>
+      <div class="header-actions">
         <el-button
           type="primary"
           plain
@@ -98,15 +100,25 @@ onMounted(fetchUppers);
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-
-  .title {
-    font-size: 22px;
-    font-weight: 600;
+  @media (max-width: 600px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
   }
 
-  .subtitle {
-    font-size: 13px;
-    color: #7a7a7a;
+  .title-left {
+    display: flex;
+    align-items: center;
+    .title {
+      font-size: 22px;
+      font-weight: 600;
+      margin-right: 12px;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: #7a7a7a;
+    }
   }
 }
 

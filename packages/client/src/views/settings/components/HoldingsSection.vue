@@ -9,35 +9,39 @@
       </div>
     </div>
 
-    <el-table :data="holdings" class="mb-4">
-      <el-table-column prop="name" label="资产名称">
-        <template #default="{ row }">
-          <el-input v-model="row.name" placeholder="请输入资产名称" />
-        </template>
-      </el-table-column>
-      <el-table-column prop="code" label="代码">
-        <template #default="{ row }">
-          <el-input v-model="row.code" placeholder="请输入代码" />
-        </template>
-      </el-table-column>
-      <el-table-column prop="percent" label="占比(%)">
-        <template #default="{ row }">
-          <el-input-number v-model="row.percent" :min="0" :max="100" />
-        </template>
-      </el-table-column>
-      <el-table-column prop="profit" label="收益">
-        <template #default="{ row }">
-          <el-input-number v-model="row.profit" :step="0.01" />
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" align="center">
-        <template #default="{ $index }">
-          <el-button type="danger" size="small" @click="handleDelete($index)">
+    <div class="holdings-grid mb-4">
+      <div
+        v-for="(row, index) in holdings"
+        :key="row.id ?? index"
+        class="holding-card"
+      >
+        <div class="card-header">
+          <span class="card-title">持仓 #{{ index + 1 }}</span>
+          <el-button type="danger" size="small" @click="handleDelete(index)">
             删除
           </el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+        </div>
+
+        <div class="card-body">
+          <div class="form-item">
+            <div class="label">资产名称</div>
+            <el-input v-model="row.name" placeholder="请输入资产名称" />
+          </div>
+          <div class="form-item">
+            <div class="label">代码</div>
+            <el-input v-model="row.code" placeholder="请输入代码" />
+          </div>
+          <div class="form-item">
+            <div class="label">占比(%)</div>
+            <el-input-number v-model="row.percent" :min="0" :max="100" />
+          </div>
+          <div class="form-item">
+            <div class="label">收益率(%)</div>
+            <el-input-number v-model="row.profit" :step="0.01" />
+          </div>
+        </div>
+      </div>
+    </div>
 
     <el-button type="primary" class="w-full" @click="handleAdd">
       + 添加持仓
@@ -70,6 +74,8 @@ async function fetchHoldings() {
     const res = await getHoldingsList();
     holdings.value = res.data.map((item: any) => ({
       ...item,
+      percent: typeof item.percent === 'number' ? item.percent * 100 : 0,
+      profit: typeof item.profit === 'number' ? item.profit * 100 : 0,
     }));
   } catch (err) {
     ElMessage.error('获取持仓列表失败');
@@ -103,8 +109,8 @@ async function handleSave() {
       holdings: holdings.value.map((item) => ({
         name: item.name,
         code: item.code,
-        percent: item.percent,
-        profit: item.profit,
+        percent: Number.isFinite(item.percent) ? item.percent / 100 : 0,
+        profit: Number.isFinite(item.profit) ? item.profit / 100 : 0,
       })),
     };
 
@@ -125,5 +131,65 @@ async function handleSave() {
   border-radius: 8px;
   padding: 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.holdings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.holding-card {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-title {
+  font-weight: 600;
+  color: #111827;
+}
+
+.card-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
+.form-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-item :deep(.el-input),
+.form-item :deep(.el-input-number),
+.form-item :deep(.el-select) {
+  width: 100%;
+}
+
+.form-item :deep(.el-input__wrapper) {
+  width: 100%;
+}
+
+.label {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+@media (max-width: 640px) {
+  .card-body {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

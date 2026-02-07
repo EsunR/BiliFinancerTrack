@@ -17,6 +17,7 @@ import {
 import { PUBLIC_DIR_PATH } from '@server/config/paths';
 import { VIDEO_ANALYSIS_BASE_PROMPT } from '@server/config/prompts';
 import analysisModel from '@server/model/Analysis';
+import promptModel from '@server/model/Prompt';
 import transcriptModel from '@server/model/Transcript';
 import upperModel from '@server/model/Upper';
 import videoModel from '@server/model/Video';
@@ -158,10 +159,7 @@ export async function getVideosTranscripts(
 /**
  * 触发视频分析
  */
-export async function startVideosAnalyze(
-  id: number,
-  prompt?: string
-): Promise<void> {
+export async function startVideosAnalyze(id: number): Promise<void> {
   if (!Number.isFinite(id)) {
     throw new Error('id 必须为数字');
   }
@@ -240,11 +238,17 @@ export async function startVideosAnalyze(
       if (transcripts.length === 0) {
         return;
       }
+      const prompt = await promptModel.findAll({
+        where: {
+          type: 'analysis',
+          selected: true,
+        },
+      });
       logger.info(`开始视频分析 ${bvid} ...`);
       const chatResponse = await deepSeekV3Research.chat([
         {
           role: 'system',
-          content: prompt || VIDEO_ANALYSIS_BASE_PROMPT,
+          content: prompt[0]?.content || VIDEO_ANALYSIS_BASE_PROMPT,
         },
         {
           role: 'user',

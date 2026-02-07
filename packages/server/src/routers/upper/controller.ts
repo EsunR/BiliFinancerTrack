@@ -1,12 +1,11 @@
 import type {
-  PickServerReq,
-  PickServerRes,
-  POST_UPPERS_CREATE_API,
-  GET_UPPERS_LIST_API,
-  GET_UPPERS_DETAIL_API,
-  POST_UPPERS_SYNC_API,
   DELETE_UPPERS_DELETE_API,
   DeleteUppersDeleteRes,
+  GET_UPPERS_DETAIL_API,
+  GET_UPPERS_LIST_API,
+  PickServerRes,
+  POST_UPPERS_CREATE_API,
+  POST_UPPERS_SYNC_API,
   PostUppersSyncAllRes,
 } from '@express-vue-template/types/api';
 import { VideoStatusEnum } from '@express-vue-template/types/model';
@@ -85,12 +84,21 @@ export async function getUppersList(): Promise<
     order: [['createdAt', 'DESC']],
   });
 
+  // 查询每个 UP 主的最新视频发布时间
+  const upperLastVideos = await videoModel.findAll({
+    attributes: ['upperId', 'publishAt'],
+    group: ['upperId'],
+    order: [['publishAt', 'DESC']],
+  });
+
   return records.map((record) => ({
     id: record.id,
     uid: record.uid,
     name: record.name,
     avatar: record.avatar,
     createdAt: record.createdAt,
+    lastVideoPublishedAt:
+      upperLastVideos.find((v) => v.upperId === record.id)?.publishAt || null,
   }));
 }
 

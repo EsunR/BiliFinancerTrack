@@ -13,6 +13,7 @@ import videoModel from '@server/model/Video';
 import { logger } from '@server/utils/log';
 import { deepSeekV3Research } from '@server/utils/llm';
 import { Op } from 'sequelize';
+import promptModel from '@server/model/Prompt';
 
 const dailyReportProcessingSet = new Set<number>();
 
@@ -159,10 +160,18 @@ export async function dailyReportsGenerate(
     logger.debug(
       `正在调用 LLM 生成日报内容，包含 ${reports.length} 篇分析报告`
     );
+
+    const prompt = await promptModel.findAll({
+      where: {
+        type: 'report',
+        selected: true,
+      },
+    });
+
     const chatResponse = await deepSeekV3Research.chat([
       {
         role: 'system',
-        content: DAILY_REPORT_BASE_PROMPT,
+        content: prompt[0]?.content || DAILY_REPORT_BASE_PROMPT,
       },
       {
         role: 'user',
@@ -266,7 +275,7 @@ export async function getDailyReportsMonth(
         [Op.lt]: endDate,
       },
     },
-    attributes: ['publishAt'],
+    attributes: ['publishAt', 'id'],
   });
 
   // 按日份统计日报数量
@@ -278,10 +287,17 @@ export async function getDailyReportsMonth(
 
   // 按日份统计视频数量
   const videoCountMap = new Map<number, number>();
-  videos.forEach((video) => {
-    const day = new Date(video.publishAt).getDate();
-    videoCountMap.set(day, (videoCountMap.get(day) || 0) + 1);
-  });
+  await Promise.all(
+    videos.map(async (video) => {
+      const day = new Date(video.publishAt).getDate();
+      const videoHasAnalysis = await analysisModel.findOne({
+        where: { videoId: video.id },
+      });
+      if (videoHasAnalysis) {
+        videoCountMap.set(day, (videoCountMap.get(day) || 0) + 1);
+      }
+    })
+  );
 
   // 生成该月所有日期的数据
   return Array.from({ length: daysInMonth }, (_, i) => {

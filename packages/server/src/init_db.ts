@@ -1,10 +1,10 @@
 import db from '@server/db';
 import dbGenerator from '@server/db/db_generator';
+import fs from 'fs';
 import { globSync } from 'glob';
 import path from 'path';
 import { env } from 'process';
 import { dbLogger } from './utils/log';
-import fs from 'fs';
 
 dbGenerator().then(async () => {
   const isNewDb = await db.checkIsNew();

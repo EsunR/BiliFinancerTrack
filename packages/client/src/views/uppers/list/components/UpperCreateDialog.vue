@@ -2,6 +2,7 @@
 import { nextTick, ref } from 'vue';
 import { postUppersCreate } from '@client/api/upper';
 import type { FormInstance, FormRules } from 'element-plus';
+import { before } from 'lodash-es';
 
 defineOptions({
   name: 'UpperCreateDialog',
@@ -15,6 +16,7 @@ const formRef = ref<FormInstance>();
 const formModel = ref({
   uid: '',
 });
+const dialogWidth = ref(0);
 
 const rules: FormRules = {
   uid: [
@@ -52,6 +54,20 @@ const submitCreate = async () => {
     creating.value = false;
   }
 };
+
+const updateDialogWidth = () => {
+  const width = window.innerWidth;
+  dialogWidth.value = width < 500 ? width - 40 : 400;
+};
+
+onMounted(() => {
+  updateDialogWidth();
+  window.addEventListener('resize', updateDialogWidth);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updateDialogWidth);
+});
 </script>
 
 <template>
@@ -60,7 +76,7 @@ const submitCreate = async () => {
     <el-dialog
       v-model="createDialogVisible"
       title="添加 UP 主"
-      width="420px"
+      :width="`${dialogWidth}px`"
       @closed="onDialogClosed"
     >
       <el-form ref="formRef" :model="formModel" :rules="rules">

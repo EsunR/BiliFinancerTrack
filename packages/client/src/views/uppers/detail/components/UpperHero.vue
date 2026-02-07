@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { postUppersSync } from '@client/api/upper';
-import filters from '@client/utils/filters';
 import { getBiliImageProxyUrl } from '@client/utils/image';
 import type { GetUppersDetailRes } from '@express-vue-template/types/api/upper/types';
+import dayjs from 'dayjs';
 import { ElMessage } from 'element-plus';
 
 defineOptions({
@@ -15,12 +15,6 @@ const emit = defineEmits<{
 }>();
 
 const syncing = ref(false);
-
-const formatDate = (time: string | number | Date) =>
-  filters.formatTime(
-    time instanceof Date ? time.toISOString() : time,
-    'YYYY-MM-DD'
-  );
 
 const handleSync = async () => {
   try {
@@ -47,15 +41,15 @@ const handleSync = async () => {
     <div class="hero-content">
       <div class="hero-content-left">
         <img class="hero-avatar" :src="getBiliImageProxyUrl(detail.avatar)" />
+      </div>
+      <div class="hero-content-right">
         <div class="hero-info">
           <div class="hero-name">{{ detail.name }}</div>
           <div class="hero-meta">
-            <span>创建时间：{{ formatDate(detail.createdAt) }}</span>
+            <span>{{ dayjs(detail.createdAt).format('YYYY-MM-DD') }}</span>
             <span>视频数量：{{ detail.videoCount }}</span>
           </div>
         </div>
-      </div>
-      <div class="hero-content-right">
         <el-button type="primary" :loading="syncing" @click="handleSync"
           >同步</el-button
         >
@@ -91,11 +85,24 @@ const handleSync = async () => {
   align-items: center;
   padding: 0 24px;
   position: relative;
+  gap: 24px;
 
   &-left {
     display: flex;
-    gap: 20px;
     align-items: center;
+  }
+
+  &-right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    @media (max-width: 550px) {
+      flex-direction: column;
+      gap: 12px;
+      align-items: flex-start;
+    }
   }
 }
 

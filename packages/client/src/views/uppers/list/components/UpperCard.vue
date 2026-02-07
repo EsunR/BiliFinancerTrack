@@ -2,6 +2,7 @@
 import filters from '@client/utils/filters';
 import { getBiliImageProxyUrl } from '@client/utils/image';
 import type { GetUppersRes } from '@express-vue-template/types/api/upper/types';
+import dayjs from 'dayjs';
 
 defineOptions({
   name: 'UpperCard',
@@ -11,12 +12,6 @@ type UpperItem = GetUppersRes[number];
 
 const props = defineProps<{ upper: UpperItem }>();
 const emit = defineEmits<{ (e: 'select', id: number): void }>();
-
-const formatDate = (time: string | number | Date) =>
-  filters.formatTime(
-    time instanceof Date ? time.toISOString() : time,
-    'YYYY-MM-DD'
-  );
 
 const onClick = () => {
   emit('select', props.upper.id);
@@ -32,7 +27,13 @@ const onClick = () => {
     />
     <div class="info">
       <div class="name">{{ upper.name }}</div>
-      <div class="meta">创建于 {{ formatDate(upper.createdAt) }}</div>
+      <div class="meta">
+        创建于 {{ dayjs(upper.createdAt).format('YYYY-MM-DD') }}
+      </div>
+      <div v-if="upper.lastVideoPublishedAt" class="meta">
+        最新视频发布时间
+        {{ dayjs(upper.lastVideoPublishedAt).format('YYYY-MM-DD HH:mm:ss') }}
+      </div>
     </div>
   </div>
 </template>

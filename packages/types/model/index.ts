@@ -2,6 +2,7 @@ export * from './analysis';
 export * from './dailyReport';
 export * from './holding';
 export * from './model';
+export * from './prompt';
 export * from './transcript';
 export * from './upper';
 export * from './user';

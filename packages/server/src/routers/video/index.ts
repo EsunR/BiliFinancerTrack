@@ -7,6 +7,7 @@ import {
   POST_VIDEOS_ANALYZE_API,
   PickServerReq,
   PickServerRes,
+  PostVideosAnalyzeReq,
 } from '@express-vue-template/types/api';
 import ResBody from '@server/struct/ResBody';
 import { verifyRequestArgs } from '@server/utils';
@@ -95,13 +96,11 @@ videoRouter.post(POST_VIDEOS_ANALYZE_API, async (req, res, next) => {
     throw new Error(vResult.errMsg);
   }
 
-  let { id, prompt = '' } = req.body as unknown as PickServerReq<
-    typeof POST_VIDEOS_ANALYZE_API
-  >;
+  let { id } = req.body as unknown as PostVideosAnalyzeReq;
 
   const idValue = typeof id === 'string' ? Number(id) : id;
 
-  await videoController.startVideosAnalyze(idValue, prompt);
+  await videoController.startVideosAnalyze(idValue);
 
   res.json(
     new ResBody({

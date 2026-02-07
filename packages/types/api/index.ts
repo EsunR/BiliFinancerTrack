@@ -1,9 +1,14 @@
 import { DailyReportsApi } from './dailyReports/types';
 import { HoldingsApi } from './holdings/types';
+import { PromptsApi } from './prompts/types';
 import { UpperApi } from './upper';
 import { VideoApi } from './video/types';
 
-export type ServerAPI = UpperApi & VideoApi & DailyReportsApi & HoldingsApi;
+export type ServerAPI = UpperApi &
+  VideoApi &
+  DailyReportsApi &
+  HoldingsApi &
+  PromptsApi;
 
 export type PickServerReq<P extends keyof ServerAPI> = ServerAPI[P]['req'];
 export type PickServerRes<P extends keyof ServerAPI> = ServerAPI[P]['res'];
@@ -17,3 +22,4 @@ export * from './upper';
 export * from './video';
 export * from './dailyReports';
 export * from './holdings';
+export * from './prompts';
