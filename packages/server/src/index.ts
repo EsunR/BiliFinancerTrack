@@ -50,17 +50,23 @@ scheduler.registerScheduledTask(
   '0 12 * * *',
   syncAndAnalyzeAllUppersVideo
 );
-// 每天 19:00 执行
-scheduler.registerScheduledTask(
-  'autoTriggerSync_19',
-  '0 18 * * *',
-  syncAndAnalyzeAllUppersVideo
-);
-// 每天 19:00 自动生成日报
+
 scheduler.registerScheduledTask(
   'dailyReportGenerate_19',
-  '0 19 * * *',
+  '30 12 * * *',
   dailyReportsGenerate
+);
+
+scheduler.registerScheduledTask(
+  'autoTriggerSync_19',
+  '0 20 * * *',
+  syncAndAnalyzeAllUppersVideo
+);
+
+scheduler.registerScheduledTask(
+  'autoTriggerSync_19',
+  '30 20 * * *',
+  syncAndAnalyzeAllUppersVideo
 );
 
 log.info('Scheduled tasks registered');

@@ -1,5 +1,4 @@
-export const VIDEO_ANALYSIS_BASE_PROMPT = `
-📌 任务指令
+export const VIDEO_ANALYSIS_BASE_PROMPT = `📌 任务指令
 
 请根据提供的财经类视频内容，完成以下三项任务：
 
@@ -43,11 +42,9 @@ export const VIDEO_ANALYSIS_BASE_PROMPT = `
 
 如视频内容存在明显矛盾或数据缺失，需在总结中标注“信息可靠性待核实”。
 避免使用绝对化表述（如“必然上涨”），改用“概率较高”“需密切关注”等中性词汇。
-请根据以上框架处理财经视频内容，确保输出清晰、结构完整且风险提示醒目。
-`;
+请根据以上框架处理财经视频内容，确保输出清晰、结构完整且风险提示醒目。`;
 
-export const DAILY_REPORT_BASE_PROMPT = `
-# 股市分析整合与持仓建议生成Prompt
+export const DAILY_REPORT_BASE_PROMPT = `# 股市分析整合与持仓建议生成Prompt
 
 ## 系统指令
 
@@ -164,5 +161,4 @@ export const DAILY_REPORT_BASE_PROMPT = `
 [持仓详细信息]
 \`\`\`
 
-现在，请开始处理用户提供的信息。
-`;
+现在，请开始处理用户提供的信息。`;

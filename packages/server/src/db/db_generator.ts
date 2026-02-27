@@ -36,6 +36,7 @@ async function setDefaultPromptRecords() {
     await promptModel.create({
       type: 'report',
       content: DAILY_REPORT_BASE_PROMPT,
+      note: '默认提示词',
       selected: true,
     });
     dbLogger.info('已创建默认日报提示词');
